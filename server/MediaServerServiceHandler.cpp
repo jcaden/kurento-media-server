@@ -1046,6 +1046,81 @@ throw (KmsMediaServerException)
   throw except;
 }
 
+void
+MediaServerServiceHandler::create (Json::Value &_return, Json::Value &params)
+{
+  try {
+    if (params.empty() ) {
+      _return ["error"] =
+        "'create' method requires params with at least property 'type'";
+    } else if (!params["type"].isString() ) {
+      _return ["error"] = "'type' is not a string";
+    } else if (params["type"].asString() == "MediaPipeline") {
+      std::shared_ptr<MediaPipeline> mediaPipeline;
+
+      mediaPipeline = std::shared_ptr<MediaPipeline> (new MediaPipeline (modules,
+                      mediaSet) );
+      mediaSet.reg (mediaPipeline);
+
+      _return["result"]["id"] = mediaPipeline->getIdStr();
+    } else {
+      _return ["error"] = "'type' " + params["type"].asString() + " is not supported";
+    }
+
+  } catch (...) {
+    _return["error"] = "Unexpected error in create";
+  }
+}
+
+void
+MediaServerServiceHandler::invokeJsonRpc (std::string &_return,
+    const std::string &request)
+{
+  Json::Reader reader;
+  Json::FastWriter writer;
+  Json::Value id;
+
+  try {
+    Json::Value jsonRequest;
+    Json::Value response;
+
+    reader.parse (request, jsonRequest);
+
+    GST_INFO ("JsonRpc request: %s", request.c_str() );
+
+    id = jsonRequest ["id"];
+    response["id"] = id;
+    response["error"];
+    response["result"];
+    response["jsonrpc"] = "2.0";
+
+    if (jsonRequest.empty() ) {
+      response ["error"] = "Error on request, empty or not parseable";
+    } else if (!jsonRequest["method"].isString() ) {
+      response ["error"] = "'method' is not a string";
+    } else if (jsonRequest["method"].asString() == "create") {
+      create (response, jsonRequest["params"]);
+    } else {
+      response ["error"] = "Method not supported";
+      response ["result"] = "Method not supported";
+    }
+
+    _return = writer.write (response);
+    GST_INFO ("JsonRpc return: %s", _return.c_str() );
+  } catch (...) {
+    Json::Value response;
+
+    response["result"] = "Unexpected exception";
+    response["error"] = "Unexpected exception";
+    response["jsonrpc"] = "2.0";
+    response["id"] = id;
+
+    GST_ERROR ("Unexpected exception");
+    _return = writer.write (response);
+  }
+}
+
+
 MediaServerServiceHandler::StaticConstructor
 MediaServerServiceHandler::staticConstructor;
 

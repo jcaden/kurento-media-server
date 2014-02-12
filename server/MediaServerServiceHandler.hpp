@@ -22,6 +22,8 @@
 #include "common/ConcurrentMap.hpp"
 #include <module.hpp>
 
+#include <jsoncpp/json/json.h>
+
 namespace kurento
 {
 
@@ -141,6 +143,11 @@ public:
                                   const KmsMediaObjectRef &mixer,
                                   const std::map<std::string, KmsMediaParam> &params)
   throw (KmsMediaServerException);
+
+  /* JsonRPC */
+  void invokeJsonRpc (std::string &_return, const std::string &request);
+
+  void create (Json::Value &_return, Json::Value &params);
 
 private:
   MediaSet mediaSet;

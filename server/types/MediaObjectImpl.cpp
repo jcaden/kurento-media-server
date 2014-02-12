@@ -216,6 +216,34 @@ MediaObjectImpl::sendError (const std::string &errorType,
   }
 }
 
+std::string MediaObjectImpl::getIdStr ()
+{
+  std::string ret;
+  gchar *id_str;
+
+  id_str = g_strdup_printf ("%" G_GINT64_FORMAT, id);
+  ret = id_str;
+  g_free (id_str);
+
+  return ret;
+}
+
+gint64
+MediaObjectImpl::getIdFromStr (std::string &strId) throw (std::invalid_argument)
+{
+  gint64 id;
+  int n;
+
+  n = sscanf (strId.c_str(), "%" G_GINT64_FORMAT, &id);
+
+  if (n != 1) {
+    throw std::invalid_argument ("strId is not a valid ID");
+  }
+
+  return id;
+}
+
+
 MediaObjectImpl::StaticConstructor MediaObjectImpl::staticConstructor;
 
 MediaObjectImpl::StaticConstructor::StaticConstructor()

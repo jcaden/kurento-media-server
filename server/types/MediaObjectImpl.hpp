@@ -88,6 +88,10 @@ public:
     this->state = newState;
   }
 
+  std::string getIdStr ();
+
+  static gint64 getIdFromStr (std::string &strId) throw (std::invalid_argument);
+
 protected:
   bool unregChilds = true;
 
