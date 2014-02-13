@@ -3,6 +3,7 @@ set (SOURCE_FILES HttpGetModule.cpp HttpGetEndPoint.cpp HttpGetEndPoint.hpp)
 find_program(THRIFT_EXEC thrift)
 set (THRIFT_FILES ${CMAKE_SOURCE_DIR}/kms-interface/src/main/thrift/KmsMediaHttpGetEndPointType.thrift)
 set (THRIFT_FILES ${THRIFT_FILES} ${CMAKE_SOURCE_DIR}/kms-interface/src/main/thrift/KmsMediaProfile.thrift)
+set (THRIFT_FILES ${THRIFT_FILES} ${CMAKE_SOURCE_DIR}/kms-interface/src/main/thrift/KmsMediaErrorCodes.thrift)
 
 function(get_base_name thrift_file out_base_name)
         STRING(REGEX REPLACE "[/]+(([^/]+)[/]+)+(.*).thrift\$" "\\3" base_name "${thrift_file}")
