@@ -15,11 +15,7 @@
 
 #include "UriEndPoint.hpp"
 
-#include "KmsMediaUriEndPointType_constants.h"
-#include "KmsMediaErrorCodes_constants.h"
-
 #include "utils/utils.hpp"
-#include "utils/marshalling.hpp"
 
 #define GST_CAT_DEFAULT kurento_uri_end_point
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -37,30 +33,29 @@ typedef enum {
 UriEndPoint::UriEndPoint (MediaSet &mediaSet,
                           std::shared_ptr<MediaPipeline> parent,
                           const std::string &type,
-                          const std::map<std::string, KmsMediaParam> &params,
-                          const std::string &factoryName)
-throw (KmsMediaServerException)
-  : EndPoint (mediaSet, parent, type, params, factoryName)
+                          const std::string &factoryName,
+                          const std::string &uri)
+  : EndPoint (mediaSet, parent, type, factoryName)
 {
-  KmsMediaUriEndPointConstructorParams uriEpParams;
-  const KmsMediaParam *p;
+//   KmsMediaUriEndPointConstructorParams uriEpParams;
+//   const KmsMediaParam *p;
 
-  p = getParam (params,
-                g_KmsMediaUriEndPointType_constants.CONSTRUCTOR_PARAMS_DATA_TYPE);
+//   p = getParam (params,
+//                 g_KmsMediaUriEndPointType_constants.CONSTRUCTOR_PARAMS_DATA_TYPE);
+//
+//   if (p == NULL) {
+//     KmsMediaServerException except;
+//
+//     createKmsMediaServerException (except,
+//                                    g_KmsMediaErrorCodes_constants.MEDIA_OBJECT_ILLEGAL_PARAM_ERROR,
+//                                    "Param '" + g_KmsMediaUriEndPointType_constants.CONSTRUCTOR_PARAMS_DATA_TYPE +
+//                                    "' not found");
+//     throw except;
+//   }
+//
+//   unmarshalKmsMediaUriEndPointConstructorParams (uriEpParams, p->data);
 
-  if (p == NULL) {
-    KmsMediaServerException except;
-
-    createKmsMediaServerException (except,
-                                   g_KmsMediaErrorCodes_constants.MEDIA_OBJECT_ILLEGAL_PARAM_ERROR,
-                                   "Param '" + g_KmsMediaUriEndPointType_constants.CONSTRUCTOR_PARAMS_DATA_TYPE +
-                                   "' not found");
-    throw except;
-  }
-
-  unmarshalKmsMediaUriEndPointConstructorParams (uriEpParams, p->data);
-
-  g_object_set (G_OBJECT (element), "uri", uriEpParams.uri.c_str(), NULL);
+  g_object_set (G_OBJECT (element), "uri", uri.c_str(), NULL);
 }
 
 UriEndPoint::~UriEndPoint() throw ()
@@ -98,27 +93,27 @@ UriEndPoint::stop ()
   g_object_set (G_OBJECT (element), "state", KMS_URI_END_POINT_STATE_STOP, NULL);
 }
 
-void
-UriEndPoint::invoke (KmsMediaInvocationReturn &_return,
-                     const std::string &command,
-                     const std::map<std::string, KmsMediaParam> &params)
-throw (KmsMediaServerException)
-{
-  if (g_KmsMediaUriEndPointType_constants.GET_URI.compare (command) == 0) {
-    createStringInvocationReturn (_return, getUri () );
-  } else if (g_KmsMediaUriEndPointType_constants.START.compare (command) == 0) {
-    start ();
-    createVoidInvocationReturn (_return);
-  } else if (g_KmsMediaUriEndPointType_constants.PAUSE.compare (command) == 0) {
-    pause ();
-    createVoidInvocationReturn (_return);
-  } else if (g_KmsMediaUriEndPointType_constants.STOP.compare (command) == 0) {
-    stop ();
-    createVoidInvocationReturn (_return);
-  } else {
-    EndPoint::invoke (_return, command, params);
-  }
-}
+// void
+// UriEndPoint::invoke (KmsMediaInvocationReturn &_return,
+//                      const std::string &command,
+//                      const std::map<std::string, KmsMediaParam> &params)
+// throw (KmsMediaServerException)
+// {
+//   if (g_KmsMediaUriEndPointType_constants.GET_URI.compare (command) == 0) {
+//     createStringInvocationReturn (_return, getUri () );
+//   } else if (g_KmsMediaUriEndPointType_constants.START.compare (command) == 0) {
+//     start ();
+//     createVoidInvocationReturn (_return);
+//   } else if (g_KmsMediaUriEndPointType_constants.PAUSE.compare (command) == 0) {
+//     pause ();
+//     createVoidInvocationReturn (_return);
+//   } else if (g_KmsMediaUriEndPointType_constants.STOP.compare (command) == 0) {
+//     stop ();
+//     createVoidInvocationReturn (_return);
+//   } else {
+//     EndPoint::invoke (_return, command, params);
+//   }
+// }
 
 UriEndPoint::StaticConstructor UriEndPoint::staticConstructor;
 

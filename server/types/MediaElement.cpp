@@ -14,7 +14,6 @@
  */
 
 #include "MediaElement.hpp"
-#include "KmsMediaErrorCodes_constants.h"
 #include "utils/utils.hpp"
 
 #define GST_CAT_DEFAULT kurento_media_element
@@ -27,15 +26,10 @@ namespace kurento
 MediaElement::MediaElement (MediaSet &mediaSet,
                             std::shared_ptr<MediaObjectImpl> parent,
                             const std::string &elementType,
-                            const std::map<std::string, KmsMediaParam> &params,
                             const std::string &factoryName)
-  : MediaObjectParent (mediaSet, parent, params),
-    KmsMediaElement()
+  : MediaObjectParent (mediaSet, parent)
 {
   element = gst_element_factory_make (factoryName.c_str(), NULL);
-
-  this->elementType = elementType;
-  this->objectType.__set_element (*this);
 
   g_object_ref (element);
   gst_bin_add (GST_BIN ( getPipeline()->pipeline ), element);
@@ -186,7 +180,6 @@ MediaElement::getMediaSinksByMediaType (
 
 void
 MediaElement::connect (std::shared_ptr<MediaElement> sink)
-throw (KmsMediaServerException)
 {
   std::shared_ptr<MediaSrc> audio_src = getOrCreateAudioMediaSrc();
   std::shared_ptr<MediaSink> audio_sink = sink->getOrCreateAudioMediaSink();
@@ -211,7 +204,6 @@ throw (KmsMediaServerException)
 void
 MediaElement::connect (std::shared_ptr<MediaElement> sink,
                        const KmsMediaType::type mediaType)
-throw (KmsMediaServerException)
 {
   std::shared_ptr<MediaSrc> mediaSrc;
   std::shared_ptr<MediaSink> mediaSink;
@@ -223,12 +215,13 @@ throw (KmsMediaServerException)
     mediaSrc = getOrCreateVideoMediaSrc();
     mediaSink = sink->getOrCreateVideoMediaSink();
   } else {
-    KmsMediaServerException except;
-
-    createKmsMediaServerException (except,
-                                   g_KmsMediaErrorCodes_constants.UNSUPPORTED_MEDIA_TYPE,
-                                   "Unsupported media type");
-    throw except;
+    // TODO: Raise error
+//     KmsMediaServerException except;
+//
+//     createKmsMediaServerException (except,
+//                                    g_KmsMediaErrorCodes_constants.UNSUPPORTED_MEDIA_TYPE,
+//                                    "Unsupported media type");
+//     throw except;
   }
 
   mediaSrc->connect (mediaSink);

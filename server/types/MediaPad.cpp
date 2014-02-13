@@ -22,29 +22,20 @@ GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 
 namespace kurento
 {
-
+//
 class MediaElement;
 
 MediaPad::MediaPad (std::shared_ptr<MediaElement> parent,
-                    KmsMediaPadDirection::type direction, KmsMediaType::type mediaType)
-  : MediaObjectImpl (parent),
-    KmsMediaPad ()
+                    KmsMediaType::type mediaType)
+  : MediaObjectImpl (parent)
 {
-  this-> __set_direction (direction);
-  this->__set_mediaType (mediaType);
-  this->objectType.__set_pad (*this);
 }
 
 MediaPad::MediaPad (std::shared_ptr<MediaElement> parent,
-                    KmsMediaPadDirection::type direction, KmsMediaType::type mediaType,
+                    KmsMediaType::type mediaType,
                     const std::string mediaDescription)
-  : MediaObjectImpl (parent),
-    KmsMediaPad ()
+  : MediaObjectImpl (parent)
 {
-  this-> __set_direction (direction);
-  this->__set_mediaType (mediaType);
-  this->__set_mediaDescription (mediaDescription);
-  this->objectType.__set_pad (*this);
 }
 
 MediaPad::~MediaPad () throw ()

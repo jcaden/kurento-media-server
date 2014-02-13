@@ -28,25 +28,14 @@ class MediaElement;
 class Mixer;
 
 class MediaPipeline : public MediaObjectParent,
-  public KmsMediaPipeline,
-  public std::enable_shared_from_this<MediaPipeline>
+//   public KmsMediaPipeline,
+public std::enable_shared_from_this<MediaPipeline>
 {
 
 public:
   MediaPipeline (std::map<std::string, KurentoModule *> &modules,
-                 MediaSet &mediaSet,
-                 const std::map<std::string, KmsMediaParam> &params = emptyParams) throw (
-                   KmsMediaServerException);
+                 MediaSet &mediaSet) ;
   ~MediaPipeline() throw();
-
-  std::shared_ptr<MediaElement> createMediaElement (const std::string
-      &elementType,
-      const std::map<std::string, KmsMediaParam> &params = emptyParams)
-  throw (KmsMediaServerException);
-  std::shared_ptr<Mixer> createMediaMixer (const std::string &mixerType,
-      const std::map < std::string,
-      KmsMediaParam > & params = emptyParams)
-  throw (KmsMediaServerException);
 
   std::shared_ptr<MediaPipeline> getPipeline() {
     return shared_from_this();

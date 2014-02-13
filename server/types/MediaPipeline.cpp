@@ -17,13 +17,6 @@
 #include <module.hpp>
 
 #include "utils/utils.hpp"
-#include "KmsMediaDataType_constants.h"
-#include "KmsMediaErrorCodes_constants.h"
-
-#include "KmsMediaErrorCodes_constants.h"
-
-#include "KmsMediaDispatcherMixerType_constants.h"
-#include "DispatcherMixer.hpp"
 
 #define GST_CAT_DEFAULT kurento_media_pipeline
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -35,21 +28,22 @@ namespace kurento
 void
 media_pipeline_receive_message (GstBus *bus, GstMessage *message, gpointer data)
 {
-  MediaPipeline *m = (MediaPipeline *) data;
+//   MediaPipeline *m = (MediaPipeline *) data;
 
   switch (message->type) {
   case GST_MESSAGE_ERROR: {
-    GError *err = NULL;
-    gchar *dbg_info = NULL;
+//     GError *err = NULL;
+//     gchar *dbg_info = NULL;
 
-    GST_ERROR ("Error on bus: %" GST_PTR_FORMAT, message);
-    gst_debug_bin_to_dot_file_with_ts (GST_BIN (m->pipeline),
-                                       GST_DEBUG_GRAPH_SHOW_ALL, "error");
-    gst_message_parse_error (message, &err, &dbg_info);
-    m->sendError ("UNEXPECTED_ERROR", err->message,
-                  g_KmsMediaErrorCodes_constants.UNEXPECTED_ERROR);
-    g_error_free (err);
-    g_free (dbg_info);
+//     GST_ERROR ("Error on bus: %" GST_PTR_FORMAT, message);
+//     gst_debug_bin_to_dot_file_with_ts (GST_BIN (m->pipeline),
+//                                        GST_DEBUG_GRAPH_SHOW_ALL, "error");
+//     gst_message_parse_error (message, &err, &dbg_info);
+//     m->sendError ("UNEXPECTED_ERROR", err->message,
+//                   g_KmsMediaErrorCodes_constants.UNEXPECTED_ERROR);
+//     g_error_free (err);
+//     g_free (dbg_info);
+    // TODO: Send error
     break;
   }
 
@@ -73,16 +67,13 @@ MediaPipeline::init ()
                     (gpointer) this);
   g_object_unref (bus);
 
-  this->objectType.__set_pipeline (*this);
   this->unregChilds = false;
 }
 
 MediaPipeline::MediaPipeline (std::map <std::string, KurentoModule *> &modules,
-                              MediaSet &mediaSet,
-                              const std::map < std::string, KmsMediaParam> &params)
-throw (KmsMediaServerException)
-  : MediaObjectParent (mediaSet, params, true),
-    KmsMediaPipeline (), modules (modules)
+                              MediaSet &mediaSet)
+  : MediaObjectParent (mediaSet, true),
+    modules (modules)
 {
   init ();
 }
@@ -96,60 +87,60 @@ MediaPipeline::~MediaPipeline() throw()
   g_object_unref (pipeline);
 }
 
-std::shared_ptr<MediaElement>
-MediaPipeline::createMediaElement (const std::string &elementType,
-                                   const std::map<std::string, KmsMediaParam> &params)
-throw (KmsMediaServerException)
-{
-  std::shared_ptr<MediaElement> element;
-  KurentoModule *module = NULL;
-
-  try {
-    module = modules.at (elementType);
-  } catch (std::out_of_range) {
-  }
-
-  if (module != NULL && module->type == KURENTO_MODULE_ELEMENT) {
-    std::shared_ptr<MediaObjectImpl> obj = module->create_object (getMediaSet(),
-                                           shared_from_this (),
-                                           params);
-    element = std::dynamic_pointer_cast<MediaElement> (obj);
-  } else {
-    KmsMediaServerException except;
-
-    createKmsMediaServerException (except,
-                                   g_KmsMediaErrorCodes_constants.MEDIA_OBJECT_TYPE_NOT_FOUND,
-                                   "There is not any media object type " + elementType);
-    throw except;
-  }
-
-  registerChild (element);
-  return element;
-}
-
-std::shared_ptr<Mixer>
-MediaPipeline::createMediaMixer (const std::string &mixerType,
-                                 const std::map<std::string, KmsMediaParam> &params)
-throw (KmsMediaServerException)
-{
-  std::shared_ptr<Mixer> mixer;
-
-  if (g_KmsMediaDispatcherMixerType_constants.TYPE_NAME.compare (
-        mixerType) == 0) {
-    mixer = std::shared_ptr<DispatcherMixer> (new DispatcherMixer (
-              getMediaSet(), shared_from_this (), params) );
-  } else {
-    KmsMediaServerException except;
-
-    createKmsMediaServerException (except,
-                                   g_KmsMediaErrorCodes_constants.MEDIA_OBJECT_TYPE_NOT_FOUND,
-                                   "There is not any media mixer type " + mixerType);
-    throw except;
-  }
-
-  registerChild (mixer);
-  return mixer;
-}
+// std::shared_ptr<MediaElement>
+// MediaPipeline::createMediaElement (const std::string &elementType,
+//                                    const std::map<std::string, KmsMediaParam> &params)
+// throw (KmsMediaServerException)
+// {
+//   std::shared_ptr<MediaElement> element;
+//   KurentoModule *module = NULL;
+//
+//   try {
+//     module = modules.at (elementType);
+//   } catch (std::out_of_range) {
+//   }
+//
+//   if (module != NULL && module->type == KURENTO_MODULE_ELEMENT) {
+//     std::shared_ptr<MediaObjectImpl> obj = module->create_object (getMediaSet(),
+//                                            shared_from_this (),
+//                                            params);
+//     element = std::dynamic_pointer_cast<MediaElement> (obj);
+//   } else {
+//     KmsMediaServerException except;
+//
+//     createKmsMediaServerException (except,
+//                                    g_KmsMediaErrorCodes_constants.MEDIA_OBJECT_TYPE_NOT_FOUND,
+//                                    "There is not any media object type " + elementType);
+//     throw except;
+//   }
+//
+//   registerChild (element);
+//   return element;
+// }
+//
+// std::shared_ptr<Mixer>
+// MediaPipeline::createMediaMixer (const std::string &mixerType,
+//                                  const std::map<std::string, KmsMediaParam> &params)
+// throw (KmsMediaServerException)
+// {
+//   std::shared_ptr<Mixer> mixer;
+//
+//   if (g_KmsMediaDispatcherMixerType_constants.TYPE_NAME.compare (
+//         mixerType) == 0) {
+//     mixer = std::shared_ptr<DispatcherMixer> (new DispatcherMixer (
+//               getMediaSet(), shared_from_this (), params) );
+//   } else {
+//     KmsMediaServerException except;
+//
+//     createKmsMediaServerException (except,
+//                                    g_KmsMediaErrorCodes_constants.MEDIA_OBJECT_TYPE_NOT_FOUND,
+//                                    "There is not any media mixer type " + mixerType);
+//     throw except;
+//   }
+//
+//   registerChild (mixer);
+//   return mixer;
+// }
 
 MediaPipeline::StaticConstructor MediaPipeline::staticConstructor;
 

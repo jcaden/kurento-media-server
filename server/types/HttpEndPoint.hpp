@@ -18,7 +18,6 @@
 
 #include "EndPoint.hpp"
 #include "httpendpointserver.hpp"
-#include "KmsMediaProfile_types.h"
 
 namespace kurento
 {
@@ -27,19 +26,17 @@ class HttpEndPoint : public EndPoint
 {
 public:
   HttpEndPoint (MediaSet &mediaSet, std::shared_ptr<MediaPipeline> parent,
-                const std::string &type,
-                const std::map<std::string, KmsMediaParam> &params)
-  throw (KmsMediaServerException);
+                const std::string &type, const int &disconnectionTimeout);
   virtual ~HttpEndPoint() throw ();
 
   std::string getUrl ();
 
-  void invoke (KmsMediaInvocationReturn &_return, const std::string &command,
-               const std::map<std::string, KmsMediaParam> &params) throw (
-                 KmsMediaServerException);
-  void subscribe (std::string &_return, const std::string &eventType,
-                  const std::string &handlerAddress,
-                  const int32_t handlerPort) throw (KmsMediaServerException);
+//   void invoke (KmsMediaInvocationReturn &_return, const std::string &command,
+//                const std::map<std::string, KmsMediaParam> &params) throw (
+//                  KmsMediaServerException);
+//   void subscribe (std::string &_return, const std::string &eventType,
+//                   const std::string &handlerAddress,
+//                   const int32_t handlerPort) throw (KmsMediaServerException);
 
 protected:
   void register_end_point ();
@@ -50,8 +47,6 @@ private:
   bool urlSet = false;
   guint disconnectionTimeout;
   void setUrl (const std::string &);
-  void init (std::shared_ptr<MediaPipeline> parent, guint disconnectionTimeout)
-  throw (KmsMediaServerException);
 
   class StaticConstructor
   {

@@ -77,11 +77,7 @@ MediaHandler::~MediaHandler ()
 
 typedef struct _SendData {
   std::shared_ptr<MediaHandler> mediaHandler;
-  bool is_error;
-  union {
-    std::shared_ptr<KmsMediaEvent> event;
-    std::shared_ptr<KmsMediaError> error;
-  };
+  std::shared_ptr<Json::Value> event;
 } SendData;
 
 void
@@ -96,19 +92,22 @@ send_to_client (gpointer data, gpointer user_data)
   KmsMediaHandlerServiceClient client (protocol);
 
   try {
+    Json::FastWriter writer;
+    std::string response;
+
     transport->open();
 
-    if (d->is_error) {
-      client.onError (mh->callbackToken, * (d->error) );
-    } else {
-      client.onEvent (mh->callbackToken, * (d->event) );
-    }
+    client.eventJsonRpc (response, writer.write (*d->event) );
+    // TODO: Check response
 
     transport->close();
   } catch (...) {
     GST_WARNING ("Error sending event to MediaHandler(%s, %s:%d)",
                  mh->callbackToken.c_str (), mh->address.c_str (), mh->port);
   }
+
+  d->mediaHandler = NULL;
+  d->event = NULL;
 
   g_slice_free (SendData, data);
 }
@@ -192,17 +191,17 @@ end:
 }
 
 void
-MediaHandlerManager::sendEvent (std::shared_ptr<KmsMediaEvent> event)
+MediaHandlerManager::sendEvent (std::shared_ptr<Json::Value> event)
 {
   std::map < std::string /*eventType*/,
       std::shared_ptr<std::set<std::shared_ptr<MediaHandler>> >>::iterator
       eventTypesMapIt;
   std::set<std::shared_ptr<MediaHandler>>::iterator mediaHandlerIt;
   std::shared_ptr<std::set<std::shared_ptr<MediaHandler>> > handlersCopy;
-  sigc::slot<void, std::shared_ptr<MediaHandler>, KmsMediaEvent> s;
 
   mutex.lock();
-  eventTypesMapIt = eventTypesMap.find (event->type);
+  // TODO: Look for type
+//   eventTypesMapIt = eventTypesMap.find (event->type);
 
   if (eventTypesMapIt == eventTypesMap.end () ) {
     mutex.unlock();
@@ -218,7 +217,6 @@ MediaHandlerManager::sendEvent (std::shared_ptr<KmsMediaEvent> event)
     SendData *data = g_slice_new0 (SendData);
 
     data->mediaHandler = *mediaHandlerIt;
-    data->is_error = false;
     data->event = event;
     g_thread_pool_push (threadPool, data, NULL);
   }
@@ -251,22 +249,22 @@ MediaHandlerManager::removeMediaErrorHandler (const std::string &callbackToken)
   mutex.unlock ();
 }
 
-void
-MediaHandlerManager::sendError (std::shared_ptr<KmsMediaError> error)
-{
-  mutex.lock();
-
-  for (auto it = errorHandlersMap.begin(); it != errorHandlersMap.end(); it++) {
-    SendData *data = g_slice_new0 (SendData);
-
-    data->mediaHandler = it->second;
-    data->is_error = true;
-    data->error = error;
-    g_thread_pool_push (threadPool, data, NULL);
-  }
-
-  mutex.unlock();
-}
+// void
+// MediaHandlerManager::sendError (std::shared_ptr<KmsMediaError> error)
+// {
+//   mutex.lock();
+//
+//   for (auto it = errorHandlersMap.begin(); it != errorHandlersMap.end(); it++) {
+//     SendData *data = g_slice_new0 (SendData);
+//
+//     data->mediaHandler = it->second;
+//     data->is_error = true;
+//     data->error = error;
+//     g_thread_pool_push (threadPool, data, NULL);
+//   }
+//
+//   mutex.unlock();
+// }
 
 int
 MediaHandlerManager::getHandlersMapSize ()

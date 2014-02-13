@@ -15,7 +15,6 @@
 
 #include "MixerPort.hpp"
 #include "Mixer.hpp"
-#include "KmsMediaMixerPortType_constants.h"
 
 #define FACTORY_NAME "mixerendpoint"
 
@@ -31,10 +30,8 @@ MixerPort::getHandlerId()
   return this->handlerId;
 }
 
-MixerPort::MixerPort (MediaSet &mediaSet, std::shared_ptr<Mixer> parent,
-                      const std::map<std::string, KmsMediaParam> &params)
-  : EndPoint (mediaSet, parent, g_KmsMediaMixerPortType_constants.TYPE_NAME,
-              params, FACTORY_NAME)
+MixerPort::MixerPort (MediaSet &mediaSet, std::shared_ptr<Mixer> parent)
+  : EndPoint (mediaSet, parent, "MixerPort", FACTORY_NAME)
 {
   mixer = parent;
   g_signal_emit_by_name (mixer->getMixer(), "handle-port", element, &handlerId);

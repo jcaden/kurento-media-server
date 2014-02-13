@@ -27,17 +27,13 @@ Mixer::getMixer()
 Mixer::Mixer (MediaSet &mediaSet,
               std::shared_ptr<MediaPipeline> parent,
               const std::string &mixerType,
-              const std::map<std::string, KmsMediaParam> &params,
               const std::string &factoryName)
-  : MediaObjectParent (mediaSet, parent, params),
-    KmsMediaMixer()
+  : MediaObjectParent (mediaSet, parent)
 {
   element = gst_element_factory_make (factoryName.c_str(), NULL);
   g_object_ref (element);
   gst_bin_add (GST_BIN (parent->pipeline), element);
   gst_element_sync_state_with_parent (element);
-  this->mixerType = mixerType;
-  this->objectType.__set_mixer (*this);
 }
 
 Mixer::~Mixer() throw ()
@@ -52,7 +48,7 @@ std::shared_ptr<MixerPort>
 Mixer::createMixerPort ()
 {
   std::shared_ptr<MixerPort> mixerPort (new MixerPort (getMediaSet(),
-                                        shared_from_this(), emptyParams) );
+                                        shared_from_this() ) );
   return mixerPort;
 }
 

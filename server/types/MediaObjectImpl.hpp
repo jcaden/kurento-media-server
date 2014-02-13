@@ -22,6 +22,8 @@
 
 #include "MediaHandler.hpp"
 
+#define DEFAULT_GARBAGE_COLLECTOR_PERIOD 60
+
 namespace kurento
 {
 
@@ -32,32 +34,30 @@ typedef enum {
 
 class MediaPipeline;
 
-class MediaObjectImpl : public KmsMediaObjectRef
+class MediaObjectImpl
 {
 public:
-  MediaObjectImpl (const std::map<std::string, KmsMediaParam> &params =
-                     emptyParams, bool defaultCollectOnUnreferenced = false);
+  MediaObjectImpl (bool collectOnUnreferenced = false);
   MediaObjectImpl (std::shared_ptr<MediaObjectImpl> parent,
-                   const std::map<std::string, KmsMediaParam> &params = emptyParams,
                    bool collectOnUnreferenced = false);
   virtual ~MediaObjectImpl() throw () = 0;
 
-  std::shared_ptr<MediaObjectImpl> getParent () throw (KmsMediaServerException);
-  virtual void invoke (KmsMediaInvocationReturn &_return,
-                       const std::string &command,
-                       const std::map<std::string, KmsMediaParam> &params) throw (
-                         KmsMediaServerException);
-  virtual void subscribe (std::string &_return, const std::string &eventType,
-                          const std::string &handlerAddress,
-                          const int32_t handlerPort) throw (KmsMediaServerException);
-  virtual void unsubscribe (const std::string &callbackToken) throw (
-    KmsMediaServerException);
-
-  virtual void subscribeError (std::string &_return,
-                               const std::string &handlerAddress,
-                               const int32_t handlerPort) throw (KmsMediaServerException);
-  virtual void unsubscribeError (const std::string &callbackToken) throw (
-    KmsMediaServerException);
+  std::shared_ptr<MediaObjectImpl> getParent ();
+//   virtual void invoke (KmsMediaInvocationReturn &_return,
+//                        const std::string &command,
+//                        const std::map<std::string, KmsMediaParam> &params) throw (
+//                          KmsMediaServerException);
+//   virtual void subscribe (std::string &_return, const std::string &eventType,
+//                           const std::string &handlerAddress,
+//                           const int32_t handlerPort) throw (KmsMediaServerException);
+//   virtual void unsubscribe (const std::string &callbackToken) throw (
+//     KmsMediaServerException);
+//
+//   virtual void subscribeError (std::string &_return,
+//                                const std::string &handlerAddress,
+//                                const int32_t handlerPort) throw (KmsMediaServerException);
+//   virtual void unsubscribeError (const std::string &callbackToken) throw (
+//     KmsMediaServerException);
 
   virtual std::shared_ptr<MediaPipeline> getPipeline () = 0;
 
@@ -89,32 +89,26 @@ public:
   }
 
   std::string getIdStr ();
+  uint64_t getId () {
+    return id;
+  }
 
-  static gint64 getIdFromStr (std::string &strId) throw (std::invalid_argument);
+  static uint64_t getIdFromStr (std::string &strId) throw (std::invalid_argument);
+
+  uint64_t id;
 
 protected:
   bool unregChilds = true;
 
-  static std::map<std::string, KmsMediaParam> emptyParams;
   MediaHandlerManager mediaHandlerManager;
 
-  void sendEvent (const std::string &eventType,
-                  const KmsMediaEventData &eventData = defaultKmsMediaEventData);
-  void sendError (const std::string &errorType, const std::string &description,
-                  int32_t errorCode);
+  void sendEvent (const Json::Value &event);
 
 private:
   bool excludeFromGC;
   bool collectOnUnreferenced = false;
-  int32_t garbageCollectorPeriod =
-    g_KmsMediaServer_constants.DEFAULT_GARBAGE_COLLECTOR_PERIOD;
+  int32_t garbageCollectorPeriod = DEFAULT_GARBAGE_COLLECTOR_PERIOD;
   State state = REF;
-
-  void init (const std::map<std::string, KmsMediaParam> &params,
-             bool defaultCollectOnUnreferenced);
-  void sendError (const std::shared_ptr<KmsMediaError> &error);
-
-  static KmsMediaEventData defaultKmsMediaEventData;
 
   class StaticConstructor
   {

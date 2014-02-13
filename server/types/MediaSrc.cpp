@@ -16,7 +16,6 @@
 #include "MediaSrc.hpp"
 
 #include "MediaElement.hpp"
-#include "KmsMediaErrorCodes_constants.h"
 #include "utils/utils.hpp"
 
 #define GST_CAT_DEFAULT kurento_media_src
@@ -119,7 +118,7 @@ agnosticbin_added_cb (GstElement *element, gpointer data)
 
 MediaSrc::MediaSrc (std::shared_ptr< kurento::MediaElement > parent,
                     kurento::KmsMediaType::type mediaType)
-  : MediaPad (parent, KmsMediaPadDirection::SRC, mediaType)
+  : MediaPad (parent, mediaType)
 {
 
 }
@@ -158,8 +157,7 @@ MediaSrc::getPadName ()
 }
 
 void
-MediaSrc::connect (std::shared_ptr<MediaSink> mediaSink) throw (
-  KmsMediaServerException)
+MediaSrc::connect (std::shared_ptr<MediaSink> mediaSink)
 {
   GstPad *pad;
   bool ret;
@@ -201,16 +199,17 @@ MediaSrc::connect (std::shared_ptr<MediaSink> mediaSink) throw (
   mutex.unlock();
 
   if (!ret) {
-    KmsMediaServerException except;
-
-    createKmsMediaServerException (except,
-                                   g_KmsMediaErrorCodes_constants.CONNECT_ERROR,
-                                   "MediaSrc " + std::to_string (this->id) +
-                                   " and MediaSink " +
-                                   std::to_string (mediaSink->id) +
-                                   " cannot be linked");
-
-    throw except;
+    // TODO: Raise error
+//     KmsMediaServerException except;
+//
+//     createKmsMediaServerException (except,
+//                                    g_KmsMediaErrorCodes_constants.CONNECT_ERROR,
+//                                    "MediaSrc " + std::to_string (this->id) +
+//                                    " and MediaSink " +
+//                                    std::to_string (mediaSink->id) +
+//                                    " cannot be linked");
+//
+//     throw except;
   }
 }
 

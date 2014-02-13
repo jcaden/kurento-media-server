@@ -26,7 +26,6 @@ class EndPoint : public MediaElement
 public:
   EndPoint (MediaSet &mediaSet, std::shared_ptr<MediaObjectImpl> parent,
             const std::string &endPointType,
-            const std::map<std::string, KmsMediaParam> &params,
             const std::string &factoryName);
   virtual ~EndPoint() throw () = 0;
 

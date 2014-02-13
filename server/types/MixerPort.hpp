@@ -24,8 +24,7 @@ namespace kurento
 class MixerPort : public EndPoint
 {
 public:
-  MixerPort (MediaSet &mediaSet, std::shared_ptr<Mixer> parent,
-             const std::map<std::string, KmsMediaParam> &params = emptyParams);
+  MixerPort (MediaSet &mediaSet, std::shared_ptr<Mixer> parent);
   virtual ~MixerPort() throw ();
 
   int getHandlerId ();

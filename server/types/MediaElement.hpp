@@ -26,13 +26,12 @@ namespace kurento
 {
 
 class MediaElement : public MediaObjectParent,
-  public KmsMediaElement,
-  public std::enable_shared_from_this<MediaElement>
+//   public KmsMediaElement,
+public std::enable_shared_from_this<MediaElement>
 {
 public:
   MediaElement (MediaSet &mediaSet, std::shared_ptr<MediaObjectImpl> parent,
                 const std::string &elementType,
-                const std::map<std::string, KmsMediaParam> &params,
                 const std::string &factoryName);
   virtual ~MediaElement() throw () = 0;
 
@@ -43,10 +42,9 @@ public:
   void getMediaSinksByMediaType (std::vector < std::shared_ptr<MediaSink> >
                                  &_return, const KmsMediaType::type mediaType);
 
-  void connect (std::shared_ptr<MediaElement> sink) throw (
-    KmsMediaServerException);
+  void connect (std::shared_ptr<MediaElement> sink);
   void connect (std::shared_ptr<MediaElement> sink,
-                const KmsMediaType::type mediaType) throw (KmsMediaServerException);
+                const KmsMediaType::type mediaType);
 
   std::shared_ptr<MediaPipeline> getPipeline () {
     return parent->getPipeline();

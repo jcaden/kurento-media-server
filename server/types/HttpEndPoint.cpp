@@ -15,14 +15,7 @@
 
 #include "HttpEndPoint.hpp"
 
-#include "KmsMediaHttpEndPointType_constants.h"
-#include "KmsMediaHttpEndPointType_types.h"
-#include "KmsMediaDataType_constants.h"
-#include "KmsMediaErrorCodes_constants.h"
-#include "KmsMediaSessionEndPointType_constants.h"
-
 #include "utils/utils.hpp"
-#include "utils/marshalling.hpp"
 
 #define GST_CAT_DEFAULT kurento_http_end_point
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -48,8 +41,9 @@ http_end_point_raise_petition_event (HttpEndPoint *httpEp,
     return;
   }
 
-  httpEp->sendEvent (
-    g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_START);
+  // TODO: Sent session start event
+//   httpEp->sendEvent (
+//     g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_START);
 }
 
 static void
@@ -141,8 +135,9 @@ kurento_http_end_point_raise_session_terminated_event (HttpEndPoint *httpEp,
     return;
   }
 
-  httpEp->sendEvent (
-    g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_COMPLETE);
+  // TODO: Send event media session complete
+//   httpEp->sendEvent (
+//     g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_COMPLETE);
 }
 
 static void
@@ -264,13 +259,12 @@ dispose_http_end_point (gpointer data)
   return FALSE;
 }
 
-void
-HttpEndPoint::init (std::shared_ptr<MediaPipeline> parent,
-                    guint disconnectionTimeout)
-throw (KmsMediaServerException)
-{
-  this->disconnectionTimeout = disconnectionTimeout;
-}
+// void
+// HttpEndPoint::init (std::shared_ptr<MediaPipeline> parent,
+//                     guint disconnectionTimeout)
+// {
+//   this->disconnectionTimeout = disconnectionTimeout;
+// }
 
 void
 HttpEndPoint::register_end_point ()
@@ -284,56 +278,32 @@ HttpEndPoint::is_registered ()
   return urlSet;
 }
 
-KmsMediaHttpEndPointConstructorParams
-unmarshalKmsMediaHttpEndPointConstructorParams (std::string data)
-throw (KmsMediaServerException)
-{
-  KmsMediaHttpEndPointConstructorParams params;
-  boost::shared_ptr<TMemoryBuffer> transport;
-
-  try {
-    transport = boost::shared_ptr<TMemoryBuffer> (new TMemoryBuffer ( (
-                  uint8_t *) data.data(), data.size () ) );
-    TBinaryProtocol protocol = TBinaryProtocol (transport);
-    params.read (&protocol);
-  } catch (...) {
-    KmsMediaServerException except;
-
-    createKmsMediaServerException (except,
-                                   g_KmsMediaErrorCodes_constants.UNMARSHALL_ERROR,
-                                   "Cannot unmarshal KmsMediaHttpEndPointConstructorParams");
-    throw except;
-  }
-
-  return params;
-}
-
 HttpEndPoint::HttpEndPoint (MediaSet &mediaSet,
                             std::shared_ptr<MediaPipeline> parent,
                             const std::string &type,
-                            const std::map<std::string, KmsMediaParam> &params)
-throw (KmsMediaServerException)
-  : EndPoint (mediaSet, parent, type, params, FACTORY_NAME)
+                            const int &disconnectionTimeout)
+  : EndPoint (mediaSet, parent, type, FACTORY_NAME)
 {
-  const KmsMediaParam *p;
-  KmsMediaHttpEndPointConstructorParams httpEpParams;
-  guint disconnectionTimeout = DISCONNECTION_TIMEOUT;
-  KmsMediaProfile profile;
+//   const KmsMediaParam *p;
+//   KmsMediaHttpEndPointConstructorParams httpEpParams;
+//   guint disconnectionTimeout = DISCONNECTION_TIMEOUT;
+//   KmsMediaProfile profile;
+//
+//   profile.mediaMuxer = KmsMediaMuxer::WEBM;
+//
+//   p = getParam (params,
+//                 g_KmsMediaHttpEndPointType_constants.CONSTRUCTOR_PARAMS_DATA_TYPE);
+//
+//   if (p != NULL) {
+//     httpEpParams = unmarshalKmsMediaHttpEndPointConstructorParams (p->data);
+//
+//     if (httpEpParams.__isset.disconnectionTimeout) {
+//       disconnectionTimeout = httpEpParams.disconnectionTimeout;
+//     }
+//   }
 
-  profile.mediaMuxer = KmsMediaMuxer::WEBM;
-
-  p = getParam (params,
-                g_KmsMediaHttpEndPointType_constants.CONSTRUCTOR_PARAMS_DATA_TYPE);
-
-  if (p != NULL) {
-    httpEpParams = unmarshalKmsMediaHttpEndPointConstructorParams (p->data);
-
-    if (httpEpParams.__isset.disconnectionTimeout) {
-      disconnectionTimeout = httpEpParams.disconnectionTimeout;
-    }
-  }
-
-  init (parent, disconnectionTimeout);
+//   init (parent, disconnectionTimeout);
+  this->disconnectionTimeout = disconnectionTimeout;
 }
 
 HttpEndPoint::~HttpEndPoint() throw ()
@@ -353,36 +323,36 @@ HttpEndPoint::setUrl (const std::string &newUrl)
   url = newUrl;
 }
 
-void
-HttpEndPoint::invoke (KmsMediaInvocationReturn &_return,
-                      const std::string &command,
-                      const std::map<std::string, KmsMediaParam> &params)
-throw (KmsMediaServerException)
-{
-  if (g_KmsMediaHttpEndPointType_constants.GET_URL.compare (command) == 0) {
-    createStringInvocationReturn (_return, url);
-  } else {
-    EndPoint::invoke (_return, command, params);
-  }
-}
+// void
+// HttpEndPoint::invoke (KmsMediaInvocationReturn &_return,
+//                       const std::string &command,
+//                       const std::map<std::string, KmsMediaParam> &params)
+// throw (KmsMediaServerException)
+// {
+//   if (g_KmsMediaHttpEndPointType_constants.GET_URL.compare (command) == 0) {
+//     createStringInvocationReturn (_return, url);
+//   } else {
+//     EndPoint::invoke (_return, command, params);
+//   }
+// }
 
-void
-HttpEndPoint::subscribe (std::string &_return, const std::string &eventType,
-                         const std::string &handlerAddress, const int32_t handlerPort)
-throw (KmsMediaServerException)
-{
-  if (g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_START.compare (
-        eventType) == 0)
-    mediaHandlerManager.addMediaHandler (_return, eventType, handlerAddress,
-                                         handlerPort);
-  else if (g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_COMPLETE.compare (
-             eventType) == 0)
-    mediaHandlerManager.addMediaHandler (_return, eventType, handlerAddress,
-                                         handlerPort);
-  else {
-    EndPoint::subscribe (_return, eventType, handlerAddress, handlerPort);
-  }
-}
+// void
+// HttpEndPoint::subscribe (std::string &_return, const std::string &eventType,
+//                          const std::string &handlerAddress, const int32_t handlerPort)
+// throw (KmsMediaServerException)
+// {
+//   if (g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_START.compare (
+//         eventType) == 0)
+//     mediaHandlerManager.addMediaHandler (_return, eventType, handlerAddress,
+//                                          handlerPort);
+//   else if (g_KmsMediaSessionEndPointType_constants.EVENT_MEDIA_SESSION_COMPLETE.compare (
+//              eventType) == 0)
+//     mediaHandlerManager.addMediaHandler (_return, eventType, handlerAddress,
+//                                          handlerPort);
+//   else {
+//     EndPoint::subscribe (_return, eventType, handlerAddress, handlerPort);
+//   }
+// }
 
 HttpEndPoint::StaticConstructor HttpEndPoint::staticConstructor;
 

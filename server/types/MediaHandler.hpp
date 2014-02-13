@@ -16,9 +16,10 @@
 #ifndef __MEDIA_HANDLER_H__
 #define __MEDIA_HANDLER_H__
 
-#include "KmsMediaHandler_types.h"
+#include "KmsMediaHandlerService.h"
 
 #include <glibmm.h>
+#include <jsoncpp/json/json.h>
 
 namespace kurento
 {
@@ -35,13 +36,12 @@ public:
                         const std::string &handlerAddress,
                         const int32_t handlerPort);
   void removeMediaHandler (const std::string &callbackToken);
-  void sendEvent (std::shared_ptr<KmsMediaEvent> event);
+  void sendEvent (std::shared_ptr<Json::Value> event);
 
   void addMediaErrorHandler (std::string &_return,
                              const std::string &handlerAddress,
                              const int32_t handlerPort);
   void removeMediaErrorHandler (const std::string &callbackToken);
-  void sendError (std::shared_ptr<KmsMediaError> error);
 
   int getHandlersMapSize ();
   int getEventTypesMapSize ();

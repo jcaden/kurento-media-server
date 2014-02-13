@@ -24,10 +24,8 @@ namespace kurento
 {
 
 MediaObjectParent::MediaObjectParent (MediaSet &mediaSet,
-                                      const std::map < std::string,
-                                      KmsMediaParam > & params,
                                       bool defaultCollectOnUnreferenced)
-  : MediaObjectImpl (params, defaultCollectOnUnreferenced),
+  : MediaObjectImpl (defaultCollectOnUnreferenced),
     mediaSet (mediaSet)
 {
 
@@ -35,9 +33,8 @@ MediaObjectParent::MediaObjectParent (MediaSet &mediaSet,
 
 MediaObjectParent::MediaObjectParent (MediaSet &mediaSet,
                                       std::shared_ptr< MediaObjectImpl > parent,
-                                      const std::map< std::string, KmsMediaParam > &params,
                                       bool defaultCollectOnUnreferenced)
-  : MediaObjectImpl (parent, params, defaultCollectOnUnreferenced),
+  : MediaObjectImpl (parent, defaultCollectOnUnreferenced),
     mediaSet (mediaSet)
 {
 
