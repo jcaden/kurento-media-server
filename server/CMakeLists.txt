@@ -7,7 +7,8 @@ aux_source_directory("utils" UTILS)
 set (TYPES types/MediaPipeline.cpp types/MediaSrc.cpp types/MediaSink.cpp types/MediaSrc.cpp types/MediaPad.cpp types/Mixer.cpp types/UriEndPoint.cpp types/HttpEndPoint.cpp types/Filter.cpp types/MixerPort.cpp types/MediaObjectImpl.cpp types/MediaObjectParent.cpp types/EndPoint.cpp types/MediaElement.cpp types/MediaHandler.cpp)
 
 SET(KMSC_SOURCE main.cpp version.cpp MediaServerServiceHandler.cpp
-              ModuleLoader.cpp ${COMMON} ${TYPES} ${UTILS})
+              ModuleLoader.cpp JsonRpcHandler.cpp
+              ${COMMON} ${TYPES} ${UTILS})
 
 set(CFLAGS "-DHAVE_NETINET_IN_H -DUSE_BOOST_THREAD -DHAVE_INTTYPES_H ")
 
