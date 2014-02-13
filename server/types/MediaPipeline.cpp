@@ -20,8 +20,6 @@
 #include "KmsMediaDataType_constants.h"
 #include "KmsMediaErrorCodes_constants.h"
 
-#include "KmsMediaHttpPostEndPointType_constants.h"
-#include "HttpPostEndPoint.hpp"
 #include "KmsMediaErrorCodes_constants.h"
 
 #include "KmsMediaDispatcherMixerType_constants.h"
@@ -116,11 +114,6 @@ throw (KmsMediaServerException)
                                            shared_from_this (),
                                            params);
     element = std::dynamic_pointer_cast<MediaElement> (obj);
-  } else if (g_KmsMediaHttpPostEndPointType_constants.TYPE_NAME.compare (
-               elementType) == 0) {
-    element = std::shared_ptr<HttpPostEndPoint> (new HttpPostEndPoint (
-                getMediaSet(),
-                shared_from_this (), params) );
   } else {
     KmsMediaServerException except;
 
