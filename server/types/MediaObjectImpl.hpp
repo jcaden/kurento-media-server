@@ -20,6 +20,7 @@
 #include <memory>
 
 #include <jsoncpp/json/json.h>
+#include <JsonRpcException.hpp>
 
 namespace kurento
 {
@@ -66,7 +67,7 @@ public:
     };
 
     virtual std::shared_ptr<MediaObjectImpl> createObject (const Json::Value
-        &params);
+        &params) throw (JsonRpc::CallException);
 
     std::string getName () {
       return "MediaObjectImpl";

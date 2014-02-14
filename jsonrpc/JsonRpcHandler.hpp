@@ -13,52 +13,20 @@
  *
  */
 
-#ifndef JSONRPC_HANDLER_H
-#define JSONRPC_HANDLER_H
+#ifndef __JSONRPC_HANDLER_HPP__
+#define __JSONRPC_HANDLER_HPP__
 
 #include <string>
 #include <memory>
 #include <map>
 
 #include <jsoncpp/json/json.h>
+#include "JsonRpcException.hpp"
 
 namespace kurento
 {
 namespace JsonRpc
 {
-
-enum ErrorCode {
-  PARSE_ERROR = -32700,
-  INVALID_REQUEST = -32600,
-  METHOD_NOT_FOUND = -32601,
-  INVALID_PARAMS = -32602,
-  INTERNAL_ERROR = -32603,
-  SERVER_ERROR_INIT = -32000,
-  SERVER_ERROR_END = -32099
-};
-
-class CallException
-{
-
-public:
-  CallException (ErrorCode code, const std::string &message,
-                 const Json::Value &data = Json::Value::null);
-
-  ErrorCode getCode() {
-    return code;
-  }
-  std::string getMessage() {
-    return message;
-  }
-  Json::Value getData() {
-    return data;
-  }
-
-private:
-  ErrorCode code;
-  std::string message;
-  Json::Value data;
-};
 
 class Method
 {
@@ -94,5 +62,4 @@ private:
 } /* JsonRpc */
 } /* kurento  */
 
-#endif /* JSONRPC_HANDLER_H */
-
+#endif /* __JSONRPC_HANDLER_HPP__ */

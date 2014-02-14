@@ -66,6 +66,8 @@ add_subdirectory(httpepserver)
 
 # add_subdirectory(modules)
 
+add_subdirectory(jsonrpc)
+
 add_subdirectory(server)
 
 add_subdirectory(test)

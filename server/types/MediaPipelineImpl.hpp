@@ -40,7 +40,8 @@ public:
       return Factory::factory;
     };
 
-    std::shared_ptr<MediaObjectImpl> createObject (const Json::Value &params);
+    std::shared_ptr<MediaObjectImpl> createObject (const Json::Value &params)
+    throw (JsonRpc::CallException);
 
     std::string getName () {
       return "MediaPipelineImpl";

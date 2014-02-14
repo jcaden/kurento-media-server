@@ -5,7 +5,7 @@ aux_source_directory("types" TYPES)
 aux_source_directory("utils" UTILS)
 
 SET(KMSC_SOURCE main.cpp version.cpp MediaServerServiceHandler.cpp
-              ModuleLoader.cpp JsonRpcHandler.cpp ServerMethods.cpp
+              ModuleLoader.cpp ServerMethods.cpp
               ${COMMON} ${TYPES} ${UTILS})
 
 set(CFLAGS "-DHAVE_NETINET_IN_H -DUSE_BOOST_THREAD -DHAVE_INTTYPES_H ")
@@ -14,10 +14,11 @@ set_source_files_properties(${KMSC_SOURCE}
 		PROPERTIES COMPILE_FLAGS ${CFLAGS})
 
 add_executable(kurento ${KMSC_SOURCE})
+add_dependencies(kurento jsonrpc)
 add_dependencies(kurento kmsiface)
 add_dependencies(kurento plugins)
 
-target_link_libraries(kurento kmshttpep)
+target_link_libraries(kurento kmshttpep jsonrpc)
 target_link_libraries(kurento kmsiface ${THRIFT_LIBRARIES} ${EVENT_LIBRARIES})
 target_link_libraries(kurento ${GSTREAMER_LIBRARIES} ${GLIBMM_LIBRARIES})
 target_link_libraries(kurento ${GSTREAMER_SDP_LIBRARIES} )
@@ -34,5 +35,6 @@ include_directories(kurento ${UUID_INCLUDE_DIRS})
 include_directories(kurento ${KMSIFACE_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/server)
 include_directories(kurento ${GMODULE_INCLUDE_DIR})
 include_directories(kurento ${JSONCPP_INCLUDE_DIR})
+include_directories(kurento ${CMAKE_SOURCE_DIR}/jsonrpc)
 
 install(TARGETS kurento RUNTIME DESTINATION bin)

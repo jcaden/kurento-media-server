@@ -14,17 +14,7 @@
  */
 
 #include "JsonRpcHandler.hpp"
-
-#define JSON_RPC_PROTO "jsonrpc"
-#define JSON_RPC_PROTO_VERSION "2.0"
-#define JSON_RPC_ID "id"
-#define JSON_RPC_METHOD "method"
-#define JSON_RPC_PARAMS "params"
-#define JSON_RPC_RESULT "result"
-#define JSON_RPC_ERROR "error"
-#define JSON_RPC_ERROR_CODE "code"
-#define JSON_RPC_ERROR_MESSAGE "message"
-#define JSON_RPC_ERROR_DATA "data"
+#include "JsonRpcConstants.hpp"
 
 #define JSON_RPC_ERROR_INVALID_REQUEST "Invalid JSON-RPC request."
 
@@ -32,14 +22,6 @@ namespace kurento
 {
 namespace JsonRpc
 {
-
-CallException::CallException (ErrorCode code, const std::string &message,
-                              const Json::Value &data)
-{
-  this->code = code;
-  this->message = message;
-  this->data = data;
-}
 
 void
 Handler::addMethod (std::shared_ptr<Method> method)
