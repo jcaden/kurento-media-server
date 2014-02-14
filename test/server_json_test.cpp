@@ -32,11 +32,40 @@ public:
   ~ClientHandler () {}
 
 protected:
-  void check_simple_call ();
+  void check_error_call ();
+  void check_create_call ();
 };
 
 void
-ClientHandler::check_simple_call()
+ClientHandler::check_error_call()
+{
+  Json::Value request;
+  Json::Value response;
+  Json::FastWriter writer;
+  Json::Reader reader;
+  std::string req_str;
+  std::string response_str;
+
+  request["jsonrpc"] = "1";
+  request["id"] = 0;
+  request["method"] = "create";
+
+  req_str = writer.write (request);
+
+  client->invokeJsonRpc (response_str, req_str);
+
+  BOOST_CHECK (reader.parse (response_str, response) == true);
+
+  BOOST_CHECK (response.isMember ("error") );
+  BOOST_CHECK (response["error"].isObject() );
+  BOOST_CHECK (response["error"].isMember ("code") );
+  BOOST_CHECK (response["error"]["code"].isInt() );
+  BOOST_CHECK (response["error"]["code"] == -32600);
+  BOOST_CHECK (response["error"].isMember ("message") );
+}
+
+void
+ClientHandler::check_create_call()
 {
   Json::Value request;
   Json::FastWriter writer;
@@ -61,7 +90,8 @@ BOOST_AUTO_TEST_CASE ( server_unexpected_test )
   GST_DEBUG_CATEGORY_INIT (GST_CAT_DEFAULT, GST_DEFAULT_NAME, 0,
                            GST_DEFAULT_NAME);
 
-  check_simple_call();
+  check_error_call();
+  check_create_call();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
