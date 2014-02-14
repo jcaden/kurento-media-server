@@ -22,7 +22,7 @@
 #include "common/ConcurrentMap.hpp"
 #include <module.hpp>
 
-#include <jsoncpp/json/json.h>
+#include <ServerMethods.hpp>
 
 namespace kurento
 {
@@ -41,6 +41,9 @@ private:
   std::map <std::string, KurentoModule *> &modules;
 
 private:
+
+  ServerMethods methods;
+
   class StaticConstructor
   {
   public:

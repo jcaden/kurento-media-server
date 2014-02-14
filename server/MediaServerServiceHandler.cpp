@@ -43,8 +43,9 @@ void
 MediaServerServiceHandler::invokeJsonRpc (std::string &_return,
     const std::string &request)
 {
-  // TODO:
-
+  GST_DEBUG ("Json request: %s", request.c_str() );
+  methods.process (request, _return);
+  GST_DEBUG ("Json response: %s", _return.c_str() );
 
 //   Json::Reader reader;
 //   Json::FastWriter writer;
