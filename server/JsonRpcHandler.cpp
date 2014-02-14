@@ -33,6 +33,14 @@ namespace kurento
 namespace JsonRpc
 {
 
+CallException::CallException (ErrorCode code, const std::string &message,
+                              const Json::Value &data)
+{
+  this->code = code;
+  this->message = message;
+  this->data = data;
+}
+
 void
 Handler::addMethod (std::shared_ptr<Method> method)
 {
@@ -118,6 +126,7 @@ Handler::process (const Json::Value &msg, Json::Value &_response)
         }
 
         _response[JSON_RPC_ERROR] = error;
+        return false;
       }
     }
   }
