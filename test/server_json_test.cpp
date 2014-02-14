@@ -33,7 +33,7 @@ public:
 
 protected:
   void check_error_call ();
-  void check_create_call ();
+  void check_create_pipeline_call ();
 };
 
 void
@@ -65,20 +65,33 @@ ClientHandler::check_error_call()
 }
 
 void
-ClientHandler::check_create_call()
+ClientHandler::check_create_pipeline_call()
 {
   Json::Value request;
+  Json::Value response;
   Json::FastWriter writer;
+  Json::Reader reader;
   std::string req_str;
-  std::string response;
+  std::string response_str;
+
+  Json::Value params;
 
   request["jsonrpc"] = "2.0";
   request["id"] = 0;
   request["method"] = "create";
 
+  params["type"] = "MediaPipeline";
+
+  request["params"] = params;
+
   req_str = writer.write (request);
 
-  client->invokeJsonRpc (response, req_str);
+  client->invokeJsonRpc (response_str, req_str);
+
+  BOOST_CHECK (reader.parse (response_str, response) == true);
+
+  BOOST_CHECK (!response.isMember ("error") );
+  // TODO: Perform more tests
 }
 
 
@@ -91,7 +104,7 @@ BOOST_AUTO_TEST_CASE ( server_unexpected_test )
                            GST_DEFAULT_NAME);
 
   check_error_call();
-  check_create_call();
+  check_create_pipeline_call();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

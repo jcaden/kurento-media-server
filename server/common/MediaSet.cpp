@@ -14,17 +14,9 @@
  */
 
 #include "MediaSet.hpp"
-#include "types/MediaPipeline.hpp"
-#include "types/MediaElement.hpp"
-#include "types/MediaSrc.hpp"
-#include "types/Mixer.hpp"
-#include "types/UriEndPoint.hpp"
-#include "types/HttpEndPoint.hpp"
-#include "types/SdpEndPoint.hpp"
-#include "types/Filter.hpp"
 
-#include "KmsMediaServer_constants.h"
 #include "utils/utils.hpp"
+#include <gst/gst.h>
 
 #define GST_CAT_DEFAULT kurento_media_set
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -59,11 +51,11 @@ public:
 
     while (object && !object.unique() ) {
       GST_DEBUG ("Object reference %" G_GINT64_FORMAT " is not unique, "
-                 "waiting %d ms", object->id, wait_times * 50);
+                 "waiting %d ms", object->getId(), wait_times * 50);
       g_usleep (wait_times++ * 50000);
     }
 
-    GST_DEBUG ("Destroying object %" G_GINT64_FORMAT, object->id);
+    GST_DEBUG ("Destroying object %" G_GINT64_FORMAT, object->getId() );
 
     object.reset();
   }
@@ -76,17 +68,17 @@ eraseFromChildren (std::shared_ptr<MediaObjectImpl> mo,
                    std::map<uint64_t, std::shared_ptr<std::set<uint64_t>> >
                    &childrenMap)
 {
-  if (mo->parent == NULL) {
+  if (mo->getParent() == NULL) {
     return;
   }
 
-  auto it = childrenMap.find (mo->parent->id);
+  auto it = childrenMap.find (mo->getParent()->getId() );
 
   if (it != childrenMap.end() ) {
     std::shared_ptr<std::set<uint64_t>> children;
 
     children = it->second;
-    children->erase (mo->id);
+    children->erase (mo->getId() );
   }
 }
 
@@ -97,37 +89,26 @@ insertIntoChildren (std::shared_ptr<MediaObjectImpl> mo,
 {
   std::shared_ptr<std::set<uint64_t>> children;
 
-  if (mo->parent == NULL) {
+  if (mo->getParent() == NULL) {
     return;
   }
 
-  auto it = childrenMap.find (mo->parent->id);
+  auto it = childrenMap.find (mo->getParent()->getId() );
 
   if (it != childrenMap.end() ) {
     children = it->second;
   } else {
     children = std::shared_ptr<std::set<uint64_t>> (new
                std::set<uint64_t>() );
-    childrenMap[mo->parent->id] = children;
+    childrenMap[mo->getParent()->getId()] = children;
   }
 
-  children->insert (mo->id);
+  children->insert (mo->getId() );
 }
 
 MediaSet::~MediaSet ()
 {
   threadPool.shutdown (true);
-}
-
-bool
-MediaSet::canBeAutoreleased (const uint64_t &mediaObject)
-{
-  try {
-    getMediaObject<MediaPad> (mediaObject);
-    return false;
-  } catch (const MediaObjectNotFound &e) {
-    return true;
-  }
 }
 
 void
@@ -137,16 +118,10 @@ MediaSet::keepAlive (const uint64_t &mediaObject) throw (MediaObjectNotFound)
   std::shared_ptr<KeepAliveData> data;
   std::map<uint64_t, std::shared_ptr<KeepAliveData>>::iterator it;
 
-  if (!canBeAutoreleased (mediaObject) ) {
-    GST_DEBUG ("MediaObject %" G_GINT64_FORMAT " is not auto releasable",
-               mediaObject);
-    return;
-  }
-
   /* Check that object exists and it is not exluded from GC */
-  mo = getMediaObject<MediaObjectImpl> (mediaObject);
+  mo = getMediaObject (mediaObject);
 
-  if (mo->getExcludeFromGC () ) {
+  if (mo->getGarbagePeriod () == 0 ) {
     GST_DEBUG ("MediaObject %" G_GINT64_FORMAT " is excluded from GC",
                mediaObject);
     return;
@@ -163,7 +138,7 @@ MediaSet::keepAlive (const uint64_t &mediaObject) throw (MediaObjectNotFound)
     }
 
     data->timeoutId = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT,
-                      mo->getGarbageCollectorPeriod() * 2, keep_alive_time_out,
+                      mo->getGarbagePeriod() * 2, keep_alive_time_out,
                       (gpointer) data.get (), NULL);
   }
 
@@ -177,34 +152,34 @@ MediaSet::reg (std::shared_ptr<MediaObjectImpl> mediaObject)
 
   mutex.lock();
 
-  mo = mediaObjectToRef (mediaObject->id);
+  mo = mediaObjectToRef (mediaObject->getId() );
 
   if (mo != NULL) {
     if (mediaObject.get () != mo.get () ) {
       GST_ERROR ("There is another MediaObject registered "
-                 "with the same id (%" G_GINT64_FORMAT ")", mo->id);
+                 "with the same id (%" G_GINT64_FORMAT ")", mo->getId() );
     } else {
       GST_DEBUG ("MediaObject %" G_GINT64_FORMAT " is already in the MediaSet",
-                 mo->id);
+                 mo->getId() );
     }
 
     mutex.unlock();
     return;
   }
 
-  mediaObject->setState (REF);
+  mediaObject->setState (MediaObjectImpl::REF);
   insertIntoChildren (mediaObject, childrenRefMap);
-  mediaObjectsRefMap[mediaObject->id] = mediaObject;
+  mediaObjectsRefMap[mediaObject->getId()] = mediaObject;
 
-  if (!mediaObject->getExcludeFromGC () ) {
+  if (mediaObject->getGarbagePeriod () != 0) {
     std::shared_ptr<KeepAliveData> data;
 
     data = std::shared_ptr<KeepAliveData> (new KeepAliveData() );
     data->mediaSet = this;
-    data->objectId = mediaObject->id;
+    data->objectId = mediaObject->getId();
 
-    mediaObjectsAlive[mediaObject->id] = data;
-    keepAlive (mediaObject->id);
+    mediaObjectsAlive[mediaObject->getId()] = data;
+    keepAlive (mediaObject->getId() );
   }
 
   mutex.unlock();
@@ -284,12 +259,13 @@ MediaSet::unregRecursive (const uint64_t &id, bool force, bool rec)
   }
 
   if (!rec) {
-    if (mo->parent != NULL && mo->parent->getState () == UNREF) {
-      unregRecursive (mo->parent->id, force);
+    if (mo->getParent() != NULL
+        && mo->getParent()->getState () == MediaObjectImpl::UNREF) {
+      unregRecursive (mo->getParent()->getId(), force);
     }
   }
 
-  if (!force && !mo->getCollectOnUnreferenced () ) {
+  if (!force && mo->getGarbagePeriod () == 0 ) {
     mutex.unlock();
     return;
   }
@@ -307,8 +283,8 @@ MediaSet::unregRecursive (const uint64_t &id, bool force, bool rec)
   }
 
   mediaObjectsUnrefMap.erase (id);
-  removeAutoRelease (mo->id);
-  mediaObjectsAlive.erase (mo->id);
+  removeAutoRelease (mo->getId() );
+  mediaObjectsAlive.erase (mo->getId() );
 
   GST_TRACE ("Release MediaObject %" G_GINT64_FORMAT, id);
 
@@ -346,8 +322,8 @@ MediaSet::mediaObjectToRef (const uint64_t &id)
     if (unrefIt != mediaObjectsUnrefMap.end () ) {
       mo = unrefIt->second;
 
-      GST_TRACE ("MediaObject %" G_GINT64_FORMAT " to REF state", mo->id);
-      mo->setState (REF);
+      GST_TRACE ("MediaObject %" G_GINT64_FORMAT " to REF state", mo->getId() );
+      mo->setState (MediaObjectImpl::REF);
 
       eraseFromChildren (mo, childrenUnrefMap);
       insertIntoChildren (mo, childrenRefMap);
@@ -379,8 +355,8 @@ MediaSet::mediaObjectToUnref (const uint64_t &id)
     if (refIt != mediaObjectsRefMap.end () ) {
       mo = refIt->second;
 
-      GST_TRACE ("MediaObject %" G_GINT64_FORMAT " to UNREF state", mo->id);
-      mo->setState (UNREF);
+      GST_TRACE ("MediaObject %" G_GINT64_FORMAT " to UNREF state", mo->getId() );
+      mo->setState (MediaObjectImpl::REF);
 
       eraseFromChildren (mo, childrenRefMap);
       insertIntoChildren (mo, childrenUnrefMap);
@@ -396,49 +372,11 @@ MediaSet::mediaObjectToUnref (const uint64_t &id)
   return mo;
 }
 
-template std::shared_ptr<MediaObjectImpl>
-MediaSet::getMediaObject<MediaObjectImpl> (const uint64_t
-    &mediaObject);
-
-template std::shared_ptr<MediaPipeline>
-MediaSet::getMediaObject<MediaPipeline> (const uint64_t &mediaObject);
-
-template std::shared_ptr<MediaElement>
-MediaSet::getMediaObject<MediaElement> (const uint64_t &mediaObject);
-
-template std::shared_ptr<MediaPad>
-MediaSet::getMediaObject<MediaPad> (const uint64_t &mediaObject);
-
-template std::shared_ptr<MediaSrc>
-MediaSet::getMediaObject<MediaSrc> (const uint64_t &mediaObject);
-
-template std::shared_ptr<MediaSink>
-MediaSet::getMediaObject<MediaSink> (const uint64_t &mediaObject);
-
-template std::shared_ptr<Mixer>
-MediaSet::getMediaObject<Mixer> (const uint64_t &mediaObject);
-
-template std::shared_ptr<UriEndPoint>
-MediaSet::getMediaObject<UriEndPoint> (const uint64_t &mediaObject);
-
-template std::shared_ptr<HttpEndPoint>
-MediaSet::getMediaObject<HttpEndPoint> (const uint64_t &mediaObject);
-
-template std::shared_ptr<SdpEndPoint>
-MediaSet::getMediaObject<SdpEndPoint> (const uint64_t &mediaObject);
-
-template std::shared_ptr<Filter>
-MediaSet::getMediaObject<Filter> (const uint64_t &mediaObject);
-
-template std::shared_ptr<MixerPort>
-MediaSet::getMediaObject<MixerPort> (const uint64_t &mediaObject);
-
-template <class T> std::shared_ptr<T>
+std::shared_ptr<MediaObjectImpl>
 MediaSet::getMediaObject (const uint64_t &mediaObject)
 throw (MediaObjectNotFound)
 {
   std::shared_ptr<MediaObjectImpl> mo;
-  std::shared_ptr<T> typedMo;
 
   mo = mediaObjectToRef (mediaObject);
 
@@ -447,14 +385,7 @@ throw (MediaObjectNotFound)
     throw except;
   }
 
-  typedMo = std::dynamic_pointer_cast<T> (mo);
-
-  if (typedMo == NULL) {
-    MediaObjectNotFound except;
-    throw except;
-  }
-
-  return typedMo;
+  return mo;
 }
 
 MediaSet::StaticConstructor MediaSet::staticConstructor;

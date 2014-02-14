@@ -15,6 +15,7 @@
 
 #include <gst/gst.h>
 #include <ServerMethods.hpp>
+#include <types/MediaPipelineImpl.hpp>
 
 #define GST_CAT_DEFAULT kurento_server_methods
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -71,9 +72,47 @@ ServerMethods::Methods::create (const Json::Value &params,
 throw (JsonRpc::CallException)
 {
   Json::FastWriter writer;
+  std::string type;
 
   GST_DEBUG ("create called: %s", writer.write (params).c_str() );
-// TODO: Create method
+
+  if (params == Json::Value::null) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'params' is requiered");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (!params.isMember ("type") ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'type' parameter is requiered");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (!params["type"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'type' parameter should be a string");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  type = params["type"].asString();
+
+  if (type == "MediaPipeline") {
+    std::shared_ptr <MediaObjectImpl> pipe;
+
+    pipe = MediaPipelineImpl::Factory::getFactory().createObject (
+             params["constructorParams"]);
+
+    mediaSet.reg (pipe);
+    response["id"] = pipe->getIdStr();
+  } else {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'type' " + type + " not found or not instantiable");
+    // TODO: Define error data code
+    throw e;
+  }
 }
 
 ServerMethods::StaticConstructor ServerMethods::staticConstructor;

@@ -17,6 +17,7 @@
 #define __SERVER_METHODS__
 
 #include <JsonRpcHandler.hpp>
+#include <common/MediaSet.hpp>
 
 namespace kurento
 {
@@ -39,6 +40,10 @@ private:
                  Json::Value &response) throw (JsonRpc::CallException);
     void invoke (const Json::Value &params,
                  Json::Value &response) throw (JsonRpc::CallException);
+
+  private:
+
+    MediaSet mediaSet;
   };
 
   class CreateMethod : public JsonRpc::Method

@@ -19,6 +19,8 @@
 #include "types/MediaObjectImpl.hpp"
 
 #include <glibmm.h>
+#include <set>
+#include <memory>
 
 namespace kurento
 {
@@ -49,9 +51,8 @@ public:
   void unreg (const uint64_t &mediaObjectRef, bool force = true);
   int size();
 
-  template <class T>
-  std::shared_ptr<T> getMediaObject (const uint64_t &mediaObjectRef) throw (
-    MediaObjectNotFound);
+  std::shared_ptr<MediaObjectImpl> getMediaObject (const uint64_t &mediaObjectRef)
+  throw (MediaObjectNotFound);
 
 private:
   Glib::Threads::RecMutex mutex;
@@ -63,7 +64,6 @@ private:
 
   Glib::ThreadPool threadPool;
 
-  bool canBeAutoreleased (const uint64_t &mediaObjectRef);
   void removeAutoRelease (const uint64_t &mediaObjectRef);
 
   std::shared_ptr<MediaObjectImpl> mediaObjectToRef (const uint64_t
