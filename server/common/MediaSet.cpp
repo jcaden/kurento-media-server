@@ -31,6 +31,15 @@ struct _KeepAliveData {
   uint64_t objectId;
 };
 
+std::shared_ptr<MediaSet> mediaSet (new MediaSet() );
+
+std::shared_ptr< MediaSet >
+MediaSet::getMediaSet()
+{
+  return mediaSet;
+}
+
+
 static gboolean
 keep_alive_time_out (gpointer dataPointer)
 {
@@ -68,11 +77,14 @@ eraseFromChildren (std::shared_ptr<MediaObjectImpl> mo,
                    std::map<uint64_t, std::shared_ptr<std::set<uint64_t>> >
                    &childrenMap)
 {
-  if (mo->getParent() == NULL) {
+  std::shared_ptr<MediaObjectImpl> parent =
+    std::dynamic_pointer_cast<MediaObjectImpl> (mo->getParent() );
+
+  if (parent == NULL) {
     return;
   }
 
-  auto it = childrenMap.find (mo->getParent()->getId() );
+  auto it = childrenMap.find (parent->getId() );
 
   if (it != childrenMap.end() ) {
     std::shared_ptr<std::set<uint64_t>> children;
@@ -88,19 +100,22 @@ insertIntoChildren (std::shared_ptr<MediaObjectImpl> mo,
                     &childrenMap)
 {
   std::shared_ptr<std::set<uint64_t>> children;
+  std::shared_ptr<MediaObjectImpl> parent;
 
   if (mo->getParent() == NULL) {
     return;
   }
 
-  auto it = childrenMap.find (mo->getParent()->getId() );
+  parent = std::dynamic_pointer_cast<MediaObjectImpl> (mo->getParent() );
+
+  auto it = childrenMap.find (parent->getId() );
 
   if (it != childrenMap.end() ) {
     children = it->second;
   } else {
     children = std::shared_ptr<std::set<uint64_t>> (new
                std::set<uint64_t>() );
-    childrenMap[mo->getParent()->getId()] = children;
+    childrenMap[parent->getId()] = children;
   }
 
   children->insert (mo->getId() );
@@ -228,6 +243,7 @@ void
 MediaSet::unregRecursive (const uint64_t &id, bool force, bool rec)
 {
   std::shared_ptr<MediaObjectImpl> mo;
+  std::shared_ptr<MediaObjectImpl> parent;
 
   mutex.lock();
 
@@ -258,10 +274,12 @@ MediaSet::unregRecursive (const uint64_t &id, bool force, bool rec)
     }
   }
 
+  parent = std::dynamic_pointer_cast<MediaObjectImpl> (mo->getParent() );
+
   if (!rec) {
-    if (mo->getParent() != NULL
-        && mo->getParent()->getState () == MediaObjectImpl::UNREF) {
-      unregRecursive (mo->getParent()->getId(), force);
+    if (parent != NULL
+        && parent->getState () == MediaObjectImpl::UNREF) {
+      unregRecursive (parent->getId(), force);
     }
   }
 

@@ -13,41 +13,42 @@
  *
  */
 
-#ifndef __MEDIA_PIPELINE_IMPL_HPP__
-#define __MEDIA_PIPELINE_IMPL_HPP__
+#ifndef __MEDIA_MIXER_IMPL_HPP__
+#define __MEDIA_MIXER_IMPL_HPP__
 
 #include "MediaObjectImpl.hpp"
-#include "jsoncpp/json/json.h"
-#include <memory>
-
-#include <generated/MediaPipeline.hpp>
+#include <gst/gst.h>
+#include <generated/MediaMixer.hpp>
 
 namespace kurento
 {
 
-class MediaPipelineImpl : public virtual MediaPipeline, public MediaObjectImpl,
-  public std::enable_shared_from_this<MediaPipeline>
+class MediaMixerImpl : public virtual MediaMixer, public MediaObjectImpl,
+  public std::enable_shared_from_this<MediaMixerImpl>
 {
 public:
-  MediaPipelineImpl (int garbageCollectorPeriod);
-  virtual ~MediaPipelineImpl();
+  MediaMixerImpl (const std::string &factoryName,
+                  std::shared_ptr<MediaObjectImpl> parent, int garbagePeriod);
+  virtual ~MediaMixerImpl() throw ();
 
-  bool getUnregChilds () {
-    return false;
-  }
+  GstElement *getGstreamerElement() {
+    return element;
+  };
 
-  std::shared_ptr<MediaPipeline> getMediaPipeline() {
-    return shared_from_this();
-  }
-
-  GstElement *getPipeline() {
-    return pipeline;
-  }
+protected:
+  GstElement *element;
 
 private:
-  GstElement *pipeline;
+
+  class StaticConstructor
+  {
+  public:
+    StaticConstructor();
+  };
+
+  static StaticConstructor staticConstructor;
 };
 
 } /* kurento */
 
-#endif /* __MEDIA_PIPELINE_IMPL_HPP__ */
+#endif /* __MEDIA_MIXER_IMPL_HPP__ */

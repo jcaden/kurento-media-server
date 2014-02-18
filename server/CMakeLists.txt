@@ -3,10 +3,11 @@ find_package(Boost COMPONENTS system filesystem REQUIRED)
 aux_source_directory("common" COMMON)
 aux_source_directory("types" TYPES)
 aux_source_directory("utils" UTILS)
+aux_source_directory("generated" GENERATED_CODE)
 
 SET(KMSC_SOURCE main.cpp version.cpp MediaServerServiceHandler.cpp
               ModuleLoader.cpp ServerMethods.cpp
-              ${COMMON} ${TYPES} ${UTILS})
+              ${COMMON} ${TYPES} ${UTILS} ${GENERATED_CODE})
 
 set(CFLAGS "-DHAVE_NETINET_IN_H -DUSE_BOOST_THREAD -DHAVE_INTTYPES_H ")
 
@@ -36,5 +37,6 @@ include_directories(kurento ${KMSIFACE_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/server)
 include_directories(kurento ${GMODULE_INCLUDE_DIR})
 include_directories(kurento ${JSONCPP_INCLUDE_DIR})
 include_directories(kurento ${CMAKE_SOURCE_DIR}/jsonrpc)
+include_directories(kurento ${CMAKE_SOURCE_DIR}/generated)
 
 install(TARGETS kurento RUNTIME DESTINATION bin)

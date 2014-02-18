@@ -22,10 +22,12 @@
 #include <jsoncpp/json/json.h>
 #include <JsonRpcException.hpp>
 
+#include <generated/MediaObject.hpp>
+
 namespace kurento
 {
 
-class MediaObjectImpl
+class MediaObjectImpl : public virtual MediaObject
 {
 
 public:
@@ -34,15 +36,25 @@ public:
     UNREF
   } State;
 
-  MediaObjectImpl (int garbagePeriod, std::shared_ptr<MediaObjectImpl> parent);
+  MediaObjectImpl (std::shared_ptr<MediaObjectImpl> parent, int garbagePeriod);
   MediaObjectImpl (int garbagePeriod);
 
   guint64 getId() {
     return id;
   }
-  std::shared_ptr<MediaObjectImpl> getParent() {
+
+  virtual std::shared_ptr<MediaPipeline> getMediaPipeline() {
+    return getParent()->getMediaPipeline();
+  }
+
+  std::shared_ptr<MediaObject> getParent() {
     return parent;
   }
+
+  void release() {
+    // TODO:
+  }
+
   int getGarbagePeriod() {
     return garbagePeriod;
   }
@@ -54,7 +66,9 @@ public:
     this->state = state;
   }
 
-  virtual bool getUnregChilds() = 0;
+  virtual bool getUnregChilds() {
+    return true;
+  };
 
   std::string getIdStr ();
 
@@ -69,7 +83,7 @@ public:
     virtual std::shared_ptr<MediaObjectImpl> createObject (const Json::Value
         &params) throw (JsonRpc::CallException);
 
-    std::string getName () {
+    virtual std::string getName () {
       return "MediaObjectImpl";
     };
 

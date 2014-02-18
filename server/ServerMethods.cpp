@@ -101,9 +101,10 @@ throw (JsonRpc::CallException)
 
   if (type == "MediaPipeline") {
     std::shared_ptr <MediaObjectImpl> pipe;
+    MediaPipeline::Factory factory;
 
-    pipe = MediaPipelineImpl::Factory::getFactory().createObject (
-             params["constructorParams"]);
+    pipe = std::dynamic_pointer_cast<MediaObjectImpl> (
+             factory.createObject (params["constructorParams"]) );
 
     mediaSet.reg (pipe);
     response["id"] = pipe->getIdStr();

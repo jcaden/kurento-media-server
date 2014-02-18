@@ -13,41 +13,29 @@
  *
  */
 
-#ifndef __MEDIA_PIPELINE_IMPL_HPP__
-#define __MEDIA_PIPELINE_IMPL_HPP__
-
-#include "MediaObjectImpl.hpp"
-#include "jsoncpp/json/json.h"
-#include <memory>
-
+#include "WebRtcEndpointImpl.hpp"
 #include <generated/MediaPipeline.hpp>
+
+#define FACTORY_NAME "webrtcendpoint"
 
 namespace kurento
 {
-
-class MediaPipelineImpl : public virtual MediaPipeline, public MediaObjectImpl,
-  public std::enable_shared_from_this<MediaPipeline>
+WebRtcEndpointImpl::WebRtcEndpointImpl (
+  std::shared_ptr< MediaObjectImpl > mediaPipeline, int garbagePeriod) :
+  SdpEndpointImpl (FACTORY_NAME, mediaPipeline, garbagePeriod)
 {
-public:
-  MediaPipelineImpl (int garbageCollectorPeriod);
-  virtual ~MediaPipelineImpl();
+  // TODO:
+}
 
-  bool getUnregChilds () {
-    return false;
-  }
+std::shared_ptr< MediaObject >
+WebRtcEndpoint::Factory::createObject (
+  std::shared_ptr< MediaPipeline > mediaPipeline, int garbagePeriod)
+{
+  std::shared_ptr<MediaObject> object (new WebRtcEndpointImpl (
+                                         std::dynamic_pointer_cast<MediaObjectImpl> (mediaPipeline),
+                                         garbagePeriod) );
 
-  std::shared_ptr<MediaPipeline> getMediaPipeline() {
-    return shared_from_this();
-  }
-
-  GstElement *getPipeline() {
-    return pipeline;
-  }
-
-private:
-  GstElement *pipeline;
-};
+  return object;
+}
 
 } /* kurento */
-
-#endif /* __MEDIA_PIPELINE_IMPL_HPP__ */

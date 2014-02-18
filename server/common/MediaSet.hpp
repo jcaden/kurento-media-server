@@ -54,6 +54,8 @@ public:
   std::shared_ptr<MediaObjectImpl> getMediaObject (const uint64_t &mediaObjectRef)
   throw (MediaObjectNotFound);
 
+  static std::shared_ptr<MediaSet> getMediaSet();
+
 private:
   Glib::Threads::RecMutex mutex;
   std::map<uint64_t, std::shared_ptr<MediaObjectImpl> >
