@@ -61,10 +61,68 @@ ServerMethods::Methods::invoke (const Json::Value &params,
                                 Json::Value &response)
 throw (JsonRpc::CallException)
 {
-  Json::FastWriter writer;
+  std::shared_ptr<MediaObject> obj;
 
-  GST_DEBUG ("invoke called: %s", writer.write (params).c_str() );
-  // TODO: Invoke method
+  if (params == Json::Value::null) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'params' is requiered");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (!params.isMember ("operation") ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'operation' parameter is requiered");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (!params["operation"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'operation' parameter should be a string");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (params.isMember ("operationParams") ) {
+    if (!params["operationParams"].isObject() ) {
+      JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                                "'operation' parameter should be a string");
+      // TODO: Define error data and code
+      throw e;
+    }
+  }
+
+  if (!params.isMember ("object") ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'object' parameter is requiered");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (!params["object"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'object' parameter should be a string");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  try {
+    obj = MediaPipeline::Factory::getObject (params["object"].asString () );
+  } catch (JsonRpc::CallException &ex) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "object not found: " + ex.getMessage() );
+    throw e;
+  }
+
+  if (!obj) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "object not found");
+    throw e;
+  }
+
+  obj->getInvoker().invoke (obj, params["operation"].asString(),
+                            params["operationParams"], response);
 }
 
 void
@@ -72,11 +130,8 @@ ServerMethods::Methods::create (const Json::Value &params,
                                 Json::Value &response)
 throw (JsonRpc::CallException)
 {
-  Json::FastWriter writer;
   std::string type;
   std::shared_ptr<Factory> factory;
-
-  GST_DEBUG ("create called: %s", writer.write (params).c_str() );
 
   if (params == Json::Value::null) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,

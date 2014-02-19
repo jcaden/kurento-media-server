@@ -74,9 +74,11 @@ ClientHandler::check_create_pipeline_call()
   std::string req_str;
   std::string response_str;
   std::string pipeId;
+  std::string objId;
 
   Json::Value params;
   Json::Value constructorParams;
+  Json::Value operationParams;
 
   request["jsonrpc"] = "2.0";
   request["id"] = 0;
@@ -98,15 +100,42 @@ ClientHandler::check_create_pipeline_call()
 
   pipeId = response["result"].asString();
 
-  params["type"] = "ZBarFilter";
+  params["type"] = "WebRtcEndpoint";
   constructorParams ["mediaPipeline"] = pipeId;
   params["constructorParams"] = constructorParams;
 
   request["params"] = params;
 
   req_str = writer.write (request);
+  response_str.clear();
 
   client->invokeJsonRpc (response_str, req_str);
+
+  BOOST_CHECK (reader.parse (response_str, response) == true);
+
+  BOOST_CHECK (!response.isMember ("error") );
+  BOOST_CHECK (response.isMember ("result") );
+  BOOST_CHECK (response["result"].isString() );
+
+  objId = response["result"].asString();
+
+  request["method"] = "invoke";
+  params.clear();
+  params["object"] = objId;
+  params["operation"] = "connect";
+
+  operationParams["sink"] = objId;
+  params["operationParams"] = operationParams;
+  request["params"] = params;
+
+  req_str = writer.write (request);
+  response_str.clear();
+
+  client->invokeJsonRpc (response_str, req_str);
+  BOOST_CHECK (reader.parse (response_str, response) == true);
+
+  BOOST_CHECK (!response.isMember ("error") );
+  BOOST_CHECK (response.isMember ("result") );
 
   // TODO: Perform more tests
 }
