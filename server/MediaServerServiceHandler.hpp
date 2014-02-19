@@ -17,7 +17,6 @@
 #define __MEDIA_SERVER_SERVICE_HANDLER_HPP__
 
 #include "KmsMediaServerService.h"
-#include "common/MediaSet.hpp"
 #include "common/ConcurrentMap.hpp"
 #include <module.hpp>
 
@@ -36,7 +35,6 @@ public:
   void invokeJsonRpc (std::string &_return, const std::string &request);
 
 private:
-  MediaSet mediaSet;
   std::map <std::string, KurentoModule *> &modules;
 
 private:

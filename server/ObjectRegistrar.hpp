@@ -35,6 +35,9 @@ public:
   virtual std::shared_ptr<MediaObject> createObject (const Json::Value
       &params) throw (JsonRpc::CallException) = 0;
 
+  static std::shared_ptr<MediaObject> getObject (const std::string &id)
+  throw (JsonRpc::CallException);
+
   virtual std::string getName() = 0;
 };
 

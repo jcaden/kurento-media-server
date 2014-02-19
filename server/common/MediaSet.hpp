@@ -34,7 +34,6 @@ class MediaObjectNotFound
 class MediaSet
 {
 public:
-  MediaSet () {};
   ~MediaSet ();
 
   /**
@@ -57,6 +56,8 @@ public:
   static std::shared_ptr<MediaSet> getMediaSet();
 
 private:
+  MediaSet () {};
+
   Glib::Threads::RecMutex mutex;
   std::map<uint64_t, std::shared_ptr<MediaObjectImpl> >
   mediaObjectsRefMap, mediaObjectsUnrefMap;

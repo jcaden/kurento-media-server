@@ -31,11 +31,11 @@ struct _KeepAliveData {
   uint64_t objectId;
 };
 
-std::shared_ptr<MediaSet> mediaSet (new MediaSet() );
-
 std::shared_ptr< MediaSet >
 MediaSet::getMediaSet()
 {
+  static std::shared_ptr<MediaSet> mediaSet (new MediaSet() );
+
   return mediaSet;
 }
 

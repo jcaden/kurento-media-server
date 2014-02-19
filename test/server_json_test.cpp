@@ -73,8 +73,10 @@ ClientHandler::check_create_pipeline_call()
   Json::Reader reader;
   std::string req_str;
   std::string response_str;
+  std::string pipeId;
 
   Json::Value params;
+  Json::Value constructorParams;
 
   request["jsonrpc"] = "2.0";
   request["id"] = 0;
@@ -91,6 +93,21 @@ ClientHandler::check_create_pipeline_call()
   BOOST_CHECK (reader.parse (response_str, response) == true);
 
   BOOST_CHECK (!response.isMember ("error") );
+  BOOST_CHECK (response.isMember ("result") );
+  BOOST_CHECK (response["result"].isString() );
+
+  pipeId = response["result"].asString();
+
+  params["type"] = "ZBarFilter";
+  constructorParams ["mediaPipeline"] = pipeId;
+  params["constructorParams"] = constructorParams;
+
+  request["params"] = params;
+
+  req_str = writer.write (request);
+
+  client->invokeJsonRpc (response_str, req_str);
+
   // TODO: Perform more tests
 }
 

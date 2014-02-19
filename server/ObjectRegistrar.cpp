@@ -14,6 +14,8 @@
  */
 
 #include "ObjectRegistrar.hpp"
+#include <generated/MediaObject.hpp>
+#include <common/MediaSet.hpp>
 
 namespace kurento
 {
@@ -38,8 +40,34 @@ ObjectRegistrar::getFactory (const std::string &factoryName)
     return factories[factoryName];
   }
 
-  std::cerr << "Module " <<  factoryName << " not found." << std::endl;
   return std::shared_ptr<Factory> ();
+}
+
+std::shared_ptr<MediaObject>
+Factory::getObject (const std::string &id) throw (JsonRpc::CallException)
+{
+  uint64_t int64Id;
+  std::shared_ptr<MediaObjectImpl> obj;
+  int n;
+
+  n = sscanf (id.c_str(), "%" G_GUINT64_FORMAT, &int64Id);
+
+  if (n != 1) {
+    std::cerr << "Module not found." << std::endl;
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Invalid object identifier");
+    throw e;
+  }
+
+  try {
+    obj = MediaSet::getMediaSet()->getMediaObject (int64Id);
+  } catch (MediaObjectNotFound) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Invalid object");
+    throw e;
+  }
+
+  return std::dynamic_pointer_cast <MediaObject> (obj);
 }
 
 std::shared_ptr<ObjectRegistrar> objectRegistrar (new ObjectRegistrar() );

@@ -16,6 +16,7 @@
 #include <gst/gst.h>
 #include <ServerMethods.hpp>
 #include <types/MediaPipelineImpl.hpp>
+#include <common/MediaSet.hpp>
 
 #define GST_CAT_DEFAULT kurento_server_methods
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -102,7 +103,7 @@ throw (JsonRpc::CallException)
 
   if (!objectRegistrar) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "Cannot find object factory");
+                              "Class '" + type + "' does not exist");
     // TODO: Define error data and code
     throw e;
   }
@@ -115,11 +116,11 @@ throw (JsonRpc::CallException)
     object = std::dynamic_pointer_cast<MediaObjectImpl> (
                factory->createObject (params["constructorParams"]) );
 
-    mediaSet.reg (object);
-    response["id"] = object->getIdStr();
+    MediaSet::getMediaSet()->reg (object);
+    response = object->getIdStr();
   } else {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "Cannot find object factory");
+                              "Class '" + type + "' does not exist");
     // TODO: Define error data and code
     throw e;
   }
