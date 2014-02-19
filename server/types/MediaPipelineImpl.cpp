@@ -14,7 +14,6 @@
  */
 
 #include "MediaPipelineImpl.hpp"
-#include "JsonRpcHandler.hpp"
 
 namespace kurento
 {

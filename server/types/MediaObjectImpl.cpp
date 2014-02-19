@@ -65,12 +65,4 @@ std::string MediaObjectImpl::getIdStr ()
   return ret;
 }
 
-std::shared_ptr< MediaObjectImpl >
-MediaObjectImpl::Factory::createObject (int garbagePeriod)
-{
-  std::shared_ptr<MediaObjectImpl> object;
-
-  return object;
-}
-
 } /* kurento */
