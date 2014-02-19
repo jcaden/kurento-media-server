@@ -73,6 +73,7 @@ throw (JsonRpc::CallException)
 {
   Json::FastWriter writer;
   std::string type;
+  std::shared_ptr<Factory> factory;
 
   GST_DEBUG ("create called: %s", writer.write (params).c_str() );
 
@@ -99,21 +100,30 @@ throw (JsonRpc::CallException)
 
   type = params["type"].asString();
 
-  if (type == "MediaPipeline") {
-    std::shared_ptr <MediaObjectImpl> pipe;
-    MediaPipeline::Factory factory;
-
-    pipe = std::dynamic_pointer_cast<MediaObjectImpl> (
-             factory.createObject (params["constructorParams"]) );
-
-    mediaSet.reg (pipe);
-    response["id"] = pipe->getIdStr();
-  } else {
+  if (!objectRegistrar) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "'type' " + type + " not found or not instantiable");
-    // TODO: Define error data code
+                              "Cannot find object factory");
+    // TODO: Define error data and code
     throw e;
   }
+
+  factory = objectRegistrar->getFactory (type);
+
+  if (factory) {
+    std::shared_ptr <MediaObjectImpl> object;
+
+    object = std::dynamic_pointer_cast<MediaObjectImpl> (
+               factory->createObject (params["constructorParams"]) );
+
+    mediaSet.reg (object);
+    response["id"] = object->getIdStr();
+  } else {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Cannot find object factory");
+    // TODO: Define error data and code
+    throw e;
+  }
+
 }
 
 ServerMethods::StaticConstructor ServerMethods::staticConstructor;
