@@ -122,9 +122,8 @@ ClientHandler::check_create_pipeline_call()
   request["method"] = "invoke";
   params.clear();
   params["object"] = objId;
-  params["operation"] = "connect";
+  params["operation"] = "getMediaSrcs";
 
-  operationParams["sink"] = objId;
   params["operationParams"] = operationParams;
   request["params"] = params;
 

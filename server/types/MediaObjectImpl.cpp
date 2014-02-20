@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <glibmm.h>
+#include <JsonSerializer.hpp>
 
 namespace kurento
 {
@@ -55,14 +56,20 @@ MediaObjectImpl::MediaObjectImpl (std::shared_ptr<MediaObjectImpl> parent,
 
 std::string MediaObjectImpl::getIdStr ()
 {
-  std::string ret;
-  gchar *id_str;
+  return std::to_string (id);
+}
 
-  id_str = g_strdup_printf ("%" G_GUINT64_FORMAT, id);
-  ret = id_str;
-  g_free (id_str);
 
-  return ret;
+void
+MediaObjectImpl::Serialize (JsonSerializer &s)
+{
+  if (s.IsWriter) {
+    Json::Value v (getIdStr() );
+
+    s.JsonValue = v;
+  } else {
+    // TODO: Find the objecte getting from mediaSet
+  }
 }
 
 } /* kurento */
