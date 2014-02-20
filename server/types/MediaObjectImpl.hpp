@@ -67,13 +67,7 @@ public:
     return true;
   };
 
-  virtual std::string getRemoteId () {
-    return getIdStr();
-  }
-
   std::string getIdStr ();
-
-  virtual void Serialize (JsonSerializer &s);
 
 private:
   State state = REF;

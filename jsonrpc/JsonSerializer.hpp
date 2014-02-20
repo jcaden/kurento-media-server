@@ -71,11 +71,6 @@ private:
     Serialize (value, *this);
   }
 
-  template<typename TValue>
-  void SerializeImpl (std::shared_ptr<TValue> value) {
-    value->Serialize (*this);
-  }
-
   //Serialize using a member function Serialize(JsonSerializer&)
   template<typename TValue>
   void SerializeImpl (TValue &value,

@@ -59,17 +59,23 @@ std::string MediaObjectImpl::getIdStr ()
   return std::to_string (id);
 }
 
+} /* kurento */
+
+using namespace kurento;
 
 void
-MediaObjectImpl::Serialize (JsonSerializer &s)
+Serialize (std::shared_ptr<MediaObject> &object, JsonSerializer &s)
 {
   if (s.IsWriter) {
-    Json::Value v (getIdStr() );
+    std::shared_ptr<MediaObjectImpl> objectImpl;
+    objectImpl = std::dynamic_pointer_cast <MediaObjectImpl> (object);
 
-    s.JsonValue = v;
+    if (objectImpl) {
+      Json::Value v (objectImpl->getIdStr() );
+
+      s.JsonValue = v;
+    }
   } else {
     // TODO: Find the objecte getting from mediaSet
   }
 }
-
-} /* kurento */
