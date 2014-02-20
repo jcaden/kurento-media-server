@@ -17,6 +17,7 @@
 #include <ServerMethods.hpp>
 #include <types/MediaPipelineImpl.hpp>
 #include <common/MediaSet.hpp>
+#include <string>
 
 #define GST_CAT_DEFAULT kurento_server_methods
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -121,8 +122,24 @@ throw (JsonRpc::CallException)
     throw e;
   }
 
-  obj->getInvoker().invoke (obj, params["operation"].asString(),
-                            params["operationParams"], response);
+  try {
+    obj->getInvoker().invoke (obj, params["operation"].asString(),
+                              params["operationParams"], response);
+  } catch (std::string &ex) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Unexpected error: " + ex);
+    throw e;
+  } catch (std::exception &ex) {
+    std::string message = "Unexpected exception: ";
+
+    message.append (ex.what() );
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT, message);
+    throw e;
+  } catch (...) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Unexpected exception");
+    throw e;
+  }
 }
 
 void

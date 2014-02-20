@@ -25,7 +25,26 @@ HttpGetEndpointImpl::HttpGetEndpointImpl (
   int garbagePeriod) :
   HttpEndpointImpl (disconnectionTimeout, mediaPipeline, garbagePeriod)
 {
+  g_object_set ( G_OBJECT (getGstreamerElement() ), "accept-eos", terminateOnEOS,
+                 NULL);
 
+  switch (mediaProfile->getValue() ) {
+  case MediaProfileSpecType::WEBM:
+    GST_INFO ("Set WEBM profile");
+    g_object_set ( G_OBJECT (getGstreamerElement() ), "profile", 0, NULL);
+    break;
+
+  case MediaProfileSpecType::MP4:
+    GST_INFO ("Set MP4 profile");
+    g_object_set ( G_OBJECT (getGstreamerElement() ), "profile", 1, NULL);
+    break;
+  }
+
+  register_end_point();
+
+  if (!is_registered() ) {
+    // TODO: Raise exception
+  }
 }
 
 std::shared_ptr< MediaObject >

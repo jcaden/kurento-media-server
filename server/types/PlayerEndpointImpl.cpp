@@ -20,7 +20,7 @@
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 #define GST_DEFAULT_NAME "KurentoPlayerEndpointImpl"
 
-#define FACTORY_NAME "recorderendpoint"
+#define FACTORY_NAME "playerendpoint"
 
 namespace kurento
 {
