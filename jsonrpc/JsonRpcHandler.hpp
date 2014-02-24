@@ -17,27 +17,17 @@
 #define __JSONRPC_HANDLER_HPP__
 
 #include <string>
+#include <functional>
 #include <memory>
 #include <map>
 
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include "JsonRpcException.hpp"
 
 namespace kurento
 {
 namespace JsonRpc
 {
-
-class Method
-{
-public:
-
-  virtual ~Method() {};
-  virtual void call (const Json::Value &msg,
-                     Json::Value &response) throw (CallException) = 0;
-  virtual std::string getName() const = 0;
-};
-
 
 class Handler
 {
@@ -46,7 +36,10 @@ public:
   Handler() {};
   virtual ~Handler() {};
 
-  void addMethod (std::shared_ptr<Method> method);
+  typedef std::function<void (const Json::Value &, Json::Value &) throw (CallException) >
+  Method;
+
+  void addMethod (const std::string &name, Method method);
   bool process (const std::string &msg, std::string &_responseMsg);
 
 private:
@@ -54,7 +47,7 @@ private:
   Json::Reader reader;
   Json::FastWriter writer;
 
-  std::map<std::string, std::shared_ptr<Method>> methods;
+  std::map<std::string, Method> methods;
   bool process (const Json::Value &msg, Json::Value &_response);
   bool checkProtocol (const Json::Value &root, Json::Value &error);
 };

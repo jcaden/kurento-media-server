@@ -32,51 +32,12 @@ public:
 
 private:
 
-  class Methods
-  {
-  public:
-    void create (const Json::Value &params,
-                 Json::Value &response) throw (JsonRpc::CallException);
-    void invoke (const Json::Value &params,
-                 Json::Value &response) throw (JsonRpc::CallException);
-  };
-
-  class CreateMethod : public JsonRpc::Method
-  {
-  public:
-    CreateMethod (std::shared_ptr<Methods> methods) : Method(),
-      methods (methods) {} ;
-
-    void call (const Json::Value &msg,
+  void create (const Json::Value &params,
                Json::Value &response) throw (JsonRpc::CallException);
-    std::string getName() const {
-      return "create";
-    }
-
-  private:
-    std::shared_ptr<Methods> methods;
-  };
-
-  class InvokeMethod : public JsonRpc::Method
-  {
-  public:
-    InvokeMethod (std::shared_ptr<Methods> methods) : Method(),
-      methods (methods) {};
-
-    void call (const Json::Value &msg,
+  void invoke (const Json::Value &params,
                Json::Value &response) throw (JsonRpc::CallException);
-    std::string getName() const {
-      return "invoke";
-
-    }
-
-  private:
-    std::shared_ptr<Methods> methods;
-  };
 
   JsonRpc::Handler handler;
-
-  std::shared_ptr<Methods> methods;
 
   class StaticConstructor
   {

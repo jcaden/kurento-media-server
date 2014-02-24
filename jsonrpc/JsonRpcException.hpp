@@ -16,7 +16,7 @@
 #ifndef __JSONRPC_EXCEPTION_HPP__
 #define __JSONRPC_EXCEPTION_HPP__
 
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 
 namespace kurento
 {

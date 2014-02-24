@@ -26,30 +26,13 @@ GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 namespace kurento
 {
 
-void ServerMethods::CreateMethod::call (const Json::Value &msg,
-                                        Json::Value &response)
-throw (JsonRpc::CallException)
+ServerMethods::ServerMethods()
 {
-  methods->create (msg, response);
+  handler.addMethod ("create", std::bind (&ServerMethods::create, this,
+                                          std::placeholders::_1, std::placeholders::_2) );
+  handler.addMethod ("invoke", std::bind (&ServerMethods::invoke, this,
+                                          std::placeholders::_1, std::placeholders::_2) );
 }
-
-void ServerMethods::InvokeMethod::call (const Json::Value &msg,
-                                        Json::Value &response)
-throw (JsonRpc::CallException)
-{
-  methods->invoke (msg, response);
-}
-
-
-ServerMethods::ServerMethods() : methods (new Methods() )
-{
-  std::shared_ptr<JsonRpc::Method> createMethod (new CreateMethod (methods) );
-  std::shared_ptr<JsonRpc::Method> invokeMethod (new InvokeMethod (methods) );
-
-  handler.addMethod (createMethod);
-  handler.addMethod (invokeMethod);
-}
-
 
 void
 ServerMethods::process (const std::string &request, std::string &response)
@@ -58,8 +41,8 @@ ServerMethods::process (const std::string &request, std::string &response)
 }
 
 void
-ServerMethods::Methods::invoke (const Json::Value &params,
-                                Json::Value &response)
+ServerMethods::invoke (const Json::Value &params,
+                       Json::Value &response)
 throw (JsonRpc::CallException)
 {
   std::shared_ptr<MediaObject> obj;
@@ -143,8 +126,8 @@ throw (JsonRpc::CallException)
 }
 
 void
-ServerMethods::Methods::create (const Json::Value &params,
-                                Json::Value &response)
+ServerMethods::create (const Json::Value &params,
+                       Json::Value &response)
 throw (JsonRpc::CallException)
 {
   std::string type;

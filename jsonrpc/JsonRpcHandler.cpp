@@ -24,12 +24,13 @@ namespace JsonRpc
 {
 
 void
-Handler::addMethod (std::shared_ptr<Method> method)
+Handler::addMethod (const std::string &name, Method method)
 {
-  methods[method->getName()] = method;
+  methods[name] = method;
 }
 
-bool Handler::checkProtocol (const Json::Value &msg, Json::Value &error)
+bool
+Handler::checkProtocol (const Json::Value &msg, Json::Value &error)
 {
   Json::Value err;
 
@@ -85,31 +86,29 @@ Handler::process (const Json::Value &msg, Json::Value &_response)
 
   methodName = msg[JSON_RPC_METHOD].asString();
 
-  if (methodName != "") {
-    std::shared_ptr<Method> method = methods[methodName];
+  if (methodName != "" && methods.find (methodName) != methods.end() ) {
+    Method &method = methods[methodName];
     Json::Value response;
 
-    if (method) {
-      try {
-        method->call (msg[JSON_RPC_PARAMS], response);
-        _response[JSON_RPC_RESULT] = response;
-        return true;
-      } catch (CallException &e) {
-        Json::Value error;
-        Json::Value data;
+    try {
+      method (msg[JSON_RPC_PARAMS], response);
+      _response[JSON_RPC_RESULT] = response;
+      return true;
+    } catch (CallException &e) {
+      Json::Value error;
+      Json::Value data;
 
-        error[JSON_RPC_ERROR_CODE] = e.getCode();
-        error[JSON_RPC_ERROR_MESSAGE] = e.getMessage();
+      error[JSON_RPC_ERROR_CODE] = e.getCode();
+      error[JSON_RPC_ERROR_MESSAGE] = e.getMessage();
 
-        data = e.getData();
+      data = e.getData();
 
-        if (data != Json::Value::null) {
-          error[JSON_RPC_ERROR_DATA] = data;
-        }
-
-        _response[JSON_RPC_ERROR] = error;
-        return false;
+      if (data != Json::Value::null) {
+        error[JSON_RPC_ERROR_DATA] = data;
       }
+
+      _response[JSON_RPC_ERROR] = error;
+      return false;
     }
   }
 

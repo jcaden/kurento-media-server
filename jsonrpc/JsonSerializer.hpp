@@ -23,7 +23,7 @@
 #ifndef JSONSERIALIZER_H
 #define JSONSERIALIZER_H
 
-#include <jsoncpp/json/json.h>
+#include <json/json.h>
 #include <boost/utility.hpp>
 #include <boost/type_traits.hpp>
 #include <string>
