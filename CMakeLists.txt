@@ -55,6 +55,7 @@ pkg_check_modules(GLIBMM REQUIRED glibmm-2.4>=2.37)
 pkg_check_modules(UUID REQUIRED uuid>=2.20.0)
 pkg_check_modules(GMODULE REQUIRED gmodule-2.0>=2.38)
 pkg_check_modules(JSONCPP REQUIRED jsoncpp>=0.6.0)
+pkg_check_modules(SIGCPP REQUIRED sigc++-2.0>=2.0.10)
 
 include(ExternalProject)
 
