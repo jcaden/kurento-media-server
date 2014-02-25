@@ -35,7 +35,6 @@ public:
 
 private:
 
-  std::function<void (GstElement *player, gpointer data) > adaptorLambda;
   std::function<void() > eosLambda;
   std::function<void() > invalidUriLambda;
   std::function<void() > invalidMediaLambda;

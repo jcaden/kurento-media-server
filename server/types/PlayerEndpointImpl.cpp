@@ -25,6 +25,14 @@ GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 namespace kurento
 {
 
+static void
+adaptor_function (GstElement *player, gpointer data)
+{
+  auto handler = reinterpret_cast<std::function<void() >*> (data);
+
+  (*handler) ();
+}
+
 PlayerEndpointImpl::PlayerEndpointImpl (bool useEncodedMedia,
                                         const std::string &uri,
                                         std::shared_ptr< MediaObjectImpl > parent,
@@ -35,11 +43,6 @@ PlayerEndpointImpl::PlayerEndpointImpl (bool useEncodedMedia,
   GstElement *element = getGstreamerElement();
 
   g_object_set (G_OBJECT (element), "use-encoded-media", useEncodedMedia, NULL);
-
-  adaptorLambda = [] (GstElement * player, gpointer data) {
-    auto handler = reinterpret_cast<std::function<void() >*> (data);
-    (*handler) ();
-  };
 
   eosLambda = [&] () {
     EndOfStream event (shared_from_this(), EndOfStream::getName() );
@@ -61,10 +64,10 @@ PlayerEndpointImpl::PlayerEndpointImpl (bool useEncodedMedia,
     signalError (error);
   };
 
-  g_signal_connect (element, "eos", G_CALLBACK (&adaptorLambda), &eosLambda);
-  g_signal_connect (element, "invalid-uri", G_CALLBACK (&adaptorLambda),
+  g_signal_connect (element, "eos", G_CALLBACK (adaptor_function), &eosLambda);
+  g_signal_connect (element, "invalid-uri", G_CALLBACK (adaptor_function),
                     &invalidUriLambda);
-  g_signal_connect (element, "invalid-media", G_CALLBACK (&adaptorLambda),
+  g_signal_connect (element, "invalid-media", G_CALLBACK (adaptor_function),
                     &invalidMediaLambda);
 }
 
