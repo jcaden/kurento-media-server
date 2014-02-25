@@ -25,24 +25,6 @@ GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 namespace kurento
 {
 
-void
-player_eos (GstElement *player, gpointer data)
-{
-  // TODO Send event
-}
-
-void
-player_invalid_uri (GstElement *player, gpointer data)
-{
-  // TODO Send error
-}
-
-void
-player_invalid_media (GstElement *player, gpointer data)
-{
-  // TODO Send error
-}
-
 PlayerEndpointImpl::PlayerEndpointImpl (bool useEncodedMedia,
                                         const std::string &uri,
                                         std::shared_ptr< MediaObjectImpl > parent,
@@ -54,11 +36,36 @@ PlayerEndpointImpl::PlayerEndpointImpl (bool useEncodedMedia,
 
   g_object_set (G_OBJECT (element), "use-encoded-media", useEncodedMedia, NULL);
 
-  g_signal_connect (element, "eos", G_CALLBACK (player_eos), this);
-  g_signal_connect (element, "invalid-uri", G_CALLBACK (player_invalid_uri),
-                    NULL);
-  g_signal_connect (element, "invalid-media", G_CALLBACK (player_invalid_media),
-                    NULL);
+  adaptorLambda = [] (GstElement * player, gpointer data) {
+    auto handler = reinterpret_cast<std::function<void() >*> (data);
+    (*handler) ();
+  };
+
+  eosLambda = [&] () {
+    EndOfStream event (shared_from_this(), EndOfStream::getName() );
+
+    signalEndOfStream (event);
+  };
+
+  invalidUriLambda = [&] () {
+    /* TODO: Define error codes and types*/
+    Error error (shared_from_this(), "Invalid Uri", 0, "INVALID_URI");
+
+    signalError (error);
+  };
+
+  invalidMediaLambda = [&] () {
+    /* TODO: Define error codes and types*/
+    Error error (shared_from_this(), "Invalid Media", 0, "INVALID_MEDIA");
+
+    signalError (error);
+  };
+
+  g_signal_connect (element, "eos", G_CALLBACK (&adaptorLambda), &eosLambda);
+  g_signal_connect (element, "invalid-uri", G_CALLBACK (&adaptorLambda),
+                    &invalidUriLambda);
+  g_signal_connect (element, "invalid-media", G_CALLBACK (&adaptorLambda),
+                    &invalidMediaLambda);
 }
 
 PlayerEndpointImpl::~PlayerEndpointImpl()

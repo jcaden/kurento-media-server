@@ -18,6 +18,7 @@
 
 #include "UriEndpointImpl.hpp"
 #include <generated/PlayerEndpoint.hpp>
+#include <functional>
 
 namespace kurento
 {
@@ -33,6 +34,11 @@ public:
   void play();
 
 private:
+
+  std::function<void (GstElement *player, gpointer data) > adaptorLambda;
+  std::function<void() > eosLambda;
+  std::function<void() > invalidUriLambda;
+  std::function<void() > invalidMediaLambda;
 
   class StaticConstructor
   {
