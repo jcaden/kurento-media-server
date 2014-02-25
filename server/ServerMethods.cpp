@@ -18,6 +18,7 @@
 #include <types/MediaPipelineImpl.hpp>
 #include <common/MediaSet.hpp>
 #include <string>
+#include <EventHandler.hpp>
 
 #define GST_CAT_DEFAULT kurento_server_methods
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -29,15 +30,93 @@ namespace kurento
 ServerMethods::ServerMethods()
 {
   handler.addMethod ("create", std::bind (&ServerMethods::create, this,
-                                          std::placeholders::_1, std::placeholders::_2) );
+                                          std::placeholders::_1,
+                                          std::placeholders::_2) );
   handler.addMethod ("invoke", std::bind (&ServerMethods::invoke, this,
-                                          std::placeholders::_1, std::placeholders::_2) );
+                                          std::placeholders::_1,
+                                          std::placeholders::_2) );
+  handler.addMethod ("subscribe", std::bind (&ServerMethods::subscribe, this,
+                     std::placeholders::_1,
+                     std::placeholders::_2) );
 }
 
 void
 ServerMethods::process (const std::string &request, std::string &response)
 {
   handler.process (request, response);
+}
+
+void
+ServerMethods::subscribe (const Json::Value &params,
+                          Json::Value &response) throw (JsonRpc::CallException)
+{
+  std::shared_ptr<MediaObject> obj;
+  std::string eventType;
+  std::string ip;
+  int port;
+  std::string sessionId;
+
+  if (params == Json::Value::null) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'params' is requiered");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  if (!params["type"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'type' parameter should be a string");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  eventType = params["type"].asString();
+
+  if (!params["ip"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'ip' parameter should be a string");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  ip = params["ip"].asString();
+
+  if (!params["port"].isInt() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'port' parameter should be a int");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  port = params["port"].asInt();
+
+  if (!params["object"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'object' parameter should be a string");
+    // TODO: Define error data and code
+    throw e;
+  }
+
+  try {
+    std::shared_ptr<EventHandler> handler (new EventHandler (ip, port) );
+
+    obj = MediaObject::Factory::getObject (params["object"].asString () );
+    sessionId = obj->connect (eventType, handler);
+    eventHandlers[sessionId] = handler;
+  } catch (JsonRpc::CallException &ex) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "object not found: " + ex.getMessage() );
+    throw e;
+  }
+
+  if (sessionId == "") {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "event not found");
+    throw e;
+  }
+
+  response["sessionId"] = sessionId;
+  response["object"] = params["object"];
 }
 
 void

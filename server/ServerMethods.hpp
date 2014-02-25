@@ -17,6 +17,7 @@
 #define __SERVER_METHODS__
 
 #include <JsonRpcHandler.hpp>
+#include <EventHandler.hpp>
 
 namespace kurento
 {
@@ -36,8 +37,11 @@ private:
                Json::Value &response) throw (JsonRpc::CallException);
   void invoke (const Json::Value &params,
                Json::Value &response) throw (JsonRpc::CallException);
+  void subscribe (const Json::Value &params,
+                  Json::Value &response) throw (JsonRpc::CallException);
 
   JsonRpc::Handler handler;
+  std::map<std::string, std::shared_ptr<EventHandler>> eventHandlers;
 
   class StaticConstructor
   {
