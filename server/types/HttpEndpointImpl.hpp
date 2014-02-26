@@ -19,6 +19,7 @@
 #include "SessionEndpointImpl.hpp"
 #include <generated/HttpEndpoint.hpp>
 #include "httpendpointserver.hpp"
+#include <httpendpointserver.hpp>
 
 namespace kurento
 {
@@ -41,7 +42,6 @@ private:
   std::string url;
   bool urlSet = false;
   guint disconnectionTimeout;
-  void setUrl (const std::string &);
 
   class StaticConstructor
   {
@@ -56,16 +56,9 @@ private:
   gulong urlExpiredHandlerId;
   gint sessionStarted = 0;
 
-  /* Functions that operate in main loop context */
-  friend gboolean dispose_http_end_point (gpointer data);
-  friend gboolean init_http_end_point (gpointer data);
-
-  friend void http_end_point_raise_petition_event (HttpEndpointImpl *httpEp,
-      KmsHttpEndPointAction action);
-  friend void kurento_http_end_point_raise_session_terminated_event (
-    HttpEndpointImpl *httpEp, const gchar *uri);
-  friend void kurento_http_end_point_eos_detected_cb (GstElement *element,
-      gpointer data);
+  std::function<void (const gchar *uri, KmsHttpEndPointAction action) >
+  actionRequestedLambda;
+  std::function<void (const gchar *uri) > sessionTerminatedLambda;
 };
 
 } /* kurento */

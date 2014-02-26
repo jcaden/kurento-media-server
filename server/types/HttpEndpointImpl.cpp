@@ -24,46 +24,16 @@ GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 namespace kurento
 {
 
-void
-http_end_point_raise_petition_event (HttpEndpointImpl *httpEp,
-                                     KmsHttpEndPointAction action)
-{
-  if (!g_atomic_int_compare_and_exchange (& (httpEp->sessionStarted), 0, 1) ) {
-    return;
-  }
-
-  if (action == KMS_HTTP_END_POINT_ACTION_UNDEFINED) {
-    GST_ERROR ("Invalid or unexpected request received");
-    // TODO: Raise error to remote client
-    return;
-  }
-
-  // TODO: Sent session start event
-}
-
 static void
-action_requested_cb (KmsHttpEPServer *server, const gchar *uri,
-                     KmsHttpEndPointAction action, gpointer data)
+action_requested_adaptor_function (KmsHttpEPServer *server, const gchar *uri,
+                                   KmsHttpEndPointAction action, gpointer data)
 {
-  HttpEndpointImpl *httpEp = (HttpEndpointImpl *) data;
-  std::string uriStr = uri;
-  std::string url = httpEp->getUrl();
+  auto handler =
+    reinterpret_cast < std::function < void (const gchar * uri,
+        KmsHttpEndPointAction action) > * >
+    (data);
 
-  GST_DEBUG ("Action requested URI %s", uriStr.c_str() );
-
-  if (url.size() <= uriStr.size() ) {
-    return;
-  }
-
-  /* Remove the initial "http://host:port" to compare the uri */
-  std::string substr = url.substr (url.size() - uriStr.size(),
-                                   std::string::npos);
-
-  if (substr.compare (uriStr) != 0) {
-    return;
-  }
-
-  http_end_point_raise_petition_event (httpEp, action);
+  (*handler) (uri, action);
 }
 
 static std::string
@@ -106,47 +76,14 @@ getUriFromUrl (std::string url)
   return uri;
 }
 
-void
-kurento_http_end_point_raise_session_terminated_event (HttpEndpointImpl *httpEp,
-    const gchar *uri)
-{
-  std::string uriStr = uri;
-
-  if (httpEp->url.size() <= uriStr.size() ) {
-    return;
-  }
-
-  /* Remove the initial "http://host:port" to compare the uri */
-  std::string substr = httpEp->url.substr (httpEp->url.size() - uriStr.size(),
-                       std::string::npos);
-
-  if (substr.compare (uriStr) != 0) {
-    return;
-  }
-
-  GST_DEBUG ("Session terminated URI %s", uriStr.c_str() );
-
-  if (!g_atomic_int_compare_and_exchange (& (httpEp->sessionStarted), 1, 0) ) {
-    return;
-  }
-
-  // TODO: Send event media session complete
-}
-
 static void
-url_removed_cb (KmsHttpEPServer *server, const gchar *uri, gpointer data)
+session_terminated_adaptor_function (KmsHttpEPServer *server, const gchar *uri,
+                                     gpointer data)
 {
-  kurento_http_end_point_raise_session_terminated_event ( (
-        HttpEndpointImpl *) data,
-      uri);
-}
+  auto handler = reinterpret_cast<std::function<void (const gchar *uri) >*>
+                 (data);
 
-static void
-url_expired_cb (KmsHttpEPServer *server, const gchar *uri, gpointer data)
-{
-  kurento_http_end_point_raise_session_terminated_event ( (
-        HttpEndpointImpl *) data,
-      uri);
+  (*handler) (uri);
 }
 
 struct MainLoopData {
@@ -159,105 +96,73 @@ struct MainLoopData {
 static gboolean
 main_loop_wrapper_func (gpointer data)
 {
-  struct MainLoopData *mdata = (struct MainLoopData *) data;
+  auto func = reinterpret_cast<std::function<void() >*> (data);
 
-  return mdata->func (mdata->data);
-}
-
-static void
-main_loop_data_destroy (gpointer data)
-{
-  struct MainLoopData *mdata = (struct MainLoopData *) data;
-
-  if (mdata->destroy != NULL) {
-    mdata->destroy (mdata->data);
-  }
-
-  mdata->mutex->unlock();
-  g_slice_free (struct MainLoopData, mdata);
-}
-
-static void
-operate_in_main_loop_context (GSourceFunc func, gpointer data,
-                              GDestroyNotify destroy)
-{
-  struct MainLoopData *mdata;
-  Glib::Mutex mutex;
-
-  mdata = g_slice_new (struct MainLoopData);
-  mdata->data = data;
-  mdata->func = func;
-  mdata->destroy = destroy;
-  mdata->mutex = &mutex;
-
-  mutex.lock ();
-  g_idle_add_full (G_PRIORITY_HIGH_IDLE, main_loop_wrapper_func, mdata,
-                   main_loop_data_destroy);
-  mutex.lock ();
-}
-
-gboolean
-init_http_end_point (gpointer data)
-{
-  HttpEndpointImpl *httpEp = (HttpEndpointImpl *) data;
-  std::string uri;
-  const gchar *url;
-  gchar *c_uri;
-  gchar *addr;
-  guint port;
-
-  httpEp->actionRequestedHandlerId = g_signal_connect (httpepserver,
-                                     "action-requested",
-                                     G_CALLBACK (action_requested_cb), httpEp);
-  httpEp->urlRemovedHandlerId = g_signal_connect (httpepserver, "url-removed",
-                                G_CALLBACK (url_removed_cb), httpEp);
-  httpEp->urlExpiredHandlerId = g_signal_connect (httpepserver, "url-expired",
-                                G_CALLBACK (url_expired_cb), httpEp);
-
-  url = kms_http_ep_server_register_end_point (httpepserver, httpEp->element,
-        httpEp->disconnectionTimeout);
-
-  if (url == NULL) {
-    return G_SOURCE_REMOVE;
-  }
-
-  g_object_get (G_OBJECT (httpepserver), "announced-address", &addr, "port",
-                &port,
-                NULL);
-  c_uri = g_strdup_printf ("http://%s:%d%s", addr, port, url);
-  uri = c_uri;
-
-  g_free (addr);
-  g_free (c_uri);
-
-  httpEp->setUrl (uri);
-  httpEp->urlSet = true;
+  (*func) ();
 
   return G_SOURCE_REMOVE;
 }
 
-gboolean
-dispose_http_end_point (gpointer data)
+static void
+operate_in_main_loop_context (std::function<void () > &func)
 {
-  HttpEndpointImpl *httpEp = (HttpEndpointImpl *) data;
+  Glib::Mutex mutex;
 
-  g_signal_handler_disconnect (httpepserver, httpEp->actionRequestedHandlerId);
-  g_signal_handler_disconnect (httpepserver, httpEp->urlExpiredHandlerId);
-  g_signal_handler_disconnect (httpepserver, httpEp->urlRemovedHandlerId);
+  std::function <void () > handler = [&] () {
+    func ();
+    mutex.unlock();
+  };
 
-  std::string uri = getUriFromUrl (httpEp->url);
-
-  if (!uri.empty() ) {
-    kms_http_ep_server_unregister_end_point (httpepserver, uri.c_str() );
-  }
-
-  return FALSE;
+  mutex.lock ();
+  g_idle_add_full (G_PRIORITY_HIGH_IDLE, main_loop_wrapper_func, &handler,
+                   NULL);
+  mutex.lock ();
 }
 
 void
 HttpEndpointImpl::register_end_point ()
 {
-  operate_in_main_loop_context (init_http_end_point, this, NULL);
+  std::function<void() > initEndPoint = [&] () {
+    std::string uri;
+    const gchar *url;
+    gchar *c_uri;
+    gchar *addr;
+    guint port;
+
+    actionRequestedHandlerId = g_signal_connect (httpepserver,
+                               "action-requested",
+                               G_CALLBACK (action_requested_adaptor_function),
+                               &actionRequestedLambda);
+    urlRemovedHandlerId = g_signal_connect (httpepserver, "url-removed",
+                                            G_CALLBACK (session_terminated_adaptor_function),
+                                            &sessionTerminatedLambda);
+    urlExpiredHandlerId = g_signal_connect (httpepserver, "url-expired",
+                                            G_CALLBACK (session_terminated_adaptor_function),
+                                            &sessionTerminatedLambda);
+
+    url = kms_http_ep_server_register_end_point (httpepserver, element,
+          disconnectionTimeout);
+
+    if (url == NULL) {
+      return;
+    }
+
+    g_object_get (G_OBJECT (httpepserver), "announced-address", &addr, "port",
+                  &port,
+                  NULL);
+    c_uri = g_strdup_printf ("http://%s:%d%s", addr, port, url);
+    uri = c_uri;
+
+    g_free (addr);
+    g_free (c_uri);
+
+    this->url = uri;
+    urlSet = true;
+
+    return;
+  };
+
+  operate_in_main_loop_context (initEndPoint);
 }
 
 bool
@@ -273,23 +178,94 @@ HttpEndpointImpl::HttpEndpointImpl (int disconnectionTimeout,
   SessionEndpointImpl (FACTORY_NAME, parent, garbagePeriod)
 {
   this->disconnectionTimeout = disconnectionTimeout;
+
+  actionRequestedLambda = [&] (const gchar * uri,
+  KmsHttpEndPointAction action) {
+    std::string uriStr = uri;
+
+    GST_DEBUG ("Action requested URI %s", uriStr.c_str() );
+
+    if (url.size() <= uriStr.size() ) {
+      return;
+    }
+
+    /* Remove the initial "http://host:port" to compare the uri */
+    std::string substr = url.substr (url.size() - uriStr.size(),
+                                     std::string::npos);
+
+    if (substr.compare (uriStr) != 0) {
+      return;
+    }
+
+    /* Send event */
+    if (!g_atomic_int_compare_and_exchange (& (sessionStarted), 0, 1) ) {
+      return;
+    }
+
+    if (action == KMS_HTTP_END_POINT_ACTION_UNDEFINED) {
+      std::string errorMessage = "Invalid or unexpected request received";
+      Error error (shared_from_this(), "Invalid Uri", 0, "INVALID_URI");
+
+      GST_ERROR ("%s", errorMessage.c_str() );
+
+      signalError (error);
+    } else {
+      MediaSessionStarted event (shared_from_this(),
+                                 MediaSessionStarted::getName() );
+
+      signalMediaSessionStarted (event);
+    }
+  };
+
+  sessionTerminatedLambda = [&] (const gchar * uri) {
+    std::string uriStr = uri;
+
+    if (url.size() <= uriStr.size() ) {
+      return;
+    }
+
+    /* Remove the initial "http://host:port" to compare the uri */
+    std::string substr = url.substr (url.size() - uriStr.size(),
+                                     std::string::npos);
+
+    if (substr.compare (uriStr) != 0) {
+      return;
+    }
+
+    GST_DEBUG ("Session terminated URI %s", uriStr.c_str() );
+
+    if (!g_atomic_int_compare_and_exchange (& (sessionStarted), 1, 0) ) {
+      return;
+    }
+
+    MediaSessionTerminated event (shared_from_this(),
+                                  MediaSessionTerminated::getName() );
+
+    signalMediaSessionTerminated (event);
+  };
 }
 
 HttpEndpointImpl::~HttpEndpointImpl()
 {
-  operate_in_main_loop_context (dispose_http_end_point, this, NULL);
+  std::function <void() > aux = [&] () {
+    g_signal_handler_disconnect (httpepserver, actionRequestedHandlerId);
+    g_signal_handler_disconnect (httpepserver, urlExpiredHandlerId);
+    g_signal_handler_disconnect (httpepserver, urlRemovedHandlerId);
+
+    std::string uri = getUriFromUrl (url);
+
+    if (!uri.empty() ) {
+      kms_http_ep_server_unregister_end_point (httpepserver, uri.c_str() );
+    }
+  };
+
+  operate_in_main_loop_context (aux);
 }
 
 std::string
 HttpEndpointImpl::getUrl ()
 {
   return url;
-}
-
-void
-HttpEndpointImpl::setUrl (const std::string &newUrl)
-{
-  url = newUrl;
 }
 
 HttpEndpointImpl::StaticConstructor HttpEndpointImpl::staticConstructor;
