@@ -76,6 +76,22 @@ Serialize (std::shared_ptr<MediaObject> &object, JsonSerializer &s)
       s.JsonValue = v;
     }
   } else {
-    // TODO: Find the objecte getting from mediaSet
+    // TODO: Find the object getting from mediaSet
+  }
+}
+
+void
+Serialize (MediaObject &object, JsonSerializer &s)
+{
+  if (s.IsWriter) {
+    try {
+      MediaObjectImpl &objectImpl = dynamic_cast<MediaObjectImpl &> (object);
+      Json::Value v (objectImpl.getIdStr() );
+
+      s.JsonValue = v;
+    } catch (std::bad_cast &e) {
+    }
+  } else {
+    // TODO: Find the object getting from mediaSet
   }
 }

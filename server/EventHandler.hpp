@@ -16,8 +16,10 @@
 #ifndef __EVENT_HANDLER_HPP__
 #define __EVENT_HANDLER_HPP__
 
-#include <iostream>
 #include <sigc++/sigc++.h>
+#include <string>
+#include <json/json.h>
+#include <glibmm.h>
 
 namespace kurento
 {
@@ -25,16 +27,11 @@ namespace kurento
 class EventHandler
 {
 public:
-  EventHandler (const std::string &ip, int port) : ip (ip), port (port) {
-    // TODO: Generate Id
-    id = "12345";
-  }
+  EventHandler (const std::string &ip, int port);
+
   virtual ~EventHandler() {};
 
-  void sendEvent (Json::Value &value) const {
-    // TODO:
-    std::cout << "Send event" << std::endl;
-  }
+  void sendEvent (Json::Value &value) const;
 
   std::string getId () const {
     return id;
@@ -45,10 +42,19 @@ public:
   }
 
 private:
+  static Glib::ThreadPool pool;
   sigc::connection conn;
   std::string ip;
   int port;
   std::string id;
+
+  class StaticConstructor
+  {
+  public:
+    StaticConstructor();
+  };
+
+  static StaticConstructor staticConstructor;
 };
 
 } /* kurento */

@@ -7,6 +7,7 @@ aux_source_directory("generated" GENERATED_CODE)
 
 SET(KMSC_SOURCE main.cpp version.cpp MediaServerServiceHandler.cpp
               ModuleLoader.cpp ServerMethods.cpp ObjectRegistrar.cpp
+              EventHandler.cpp
               ${COMMON} ${TYPES} ${UTILS} ${GENERATED_CODE})
 
 set(CFLAGS "-DHAVE_NETINET_IN_H -DUSE_BOOST_THREAD -DHAVE_INTTYPES_H ")
