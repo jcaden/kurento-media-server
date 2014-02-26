@@ -30,7 +30,7 @@ public:
   PointerDetectorAdvFilterImpl (std::shared_ptr<WindowParam> calibrationRegion,
                                 std::shared_ptr<PointerDetectorWindowMediaParam> window,
                                 std::shared_ptr<MediaObjectImpl> parent, int garbagePeriod);
-  virtual ~PointerDetectorAdvFilterImpl() throw () {};
+  virtual ~PointerDetectorAdvFilterImpl() throw ();
 
   void addWindow (std::shared_ptr<PointerDetectorWindowMediaParam> window);
   void clearWindows ();
@@ -38,6 +38,11 @@ public:
   void removeWindow (const std::string &windowId);
 
 private:
+
+  GstElement *pointerDetector;
+  gulong bus_handler_id;
+
+  std::function<void (GstMessage *) > busMessageLambda;
 
   class StaticConstructor
   {
