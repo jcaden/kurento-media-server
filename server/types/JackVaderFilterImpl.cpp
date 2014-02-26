@@ -28,7 +28,15 @@ JackVaderFilterImpl::JackVaderFilterImpl (
   std::shared_ptr< MediaObjectImpl > parent, int garbagePeriod) :
   FilterImpl (parent, garbagePeriod)
 {
-  // TODO:
+  GstElement *filter = NULL;
+
+  g_object_set (element, "filter-factory", "jackvader", NULL);
+
+  g_object_get (element, "filter", &filter, NULL);
+
+  if (filter == NULL) {
+    throw KurentoException ("Media Object not available");
+  }
 }
 
 std::shared_ptr<MediaObject>
