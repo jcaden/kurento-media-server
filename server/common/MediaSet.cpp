@@ -127,7 +127,7 @@ MediaSet::~MediaSet ()
 }
 
 void
-MediaSet::keepAlive (const uint64_t &mediaObject) throw (MediaObjectNotFound)
+MediaSet::keepAlive (const uint64_t &mediaObject)
 {
   std::shared_ptr<MediaObjectImpl> mo;
   std::shared_ptr<KeepAliveData> data;
@@ -392,7 +392,6 @@ MediaSet::mediaObjectToUnref (const uint64_t &id)
 
 std::shared_ptr<MediaObjectImpl>
 MediaSet::getMediaObject (const uint64_t &mediaObject)
-throw (MediaObjectNotFound)
 {
   std::shared_ptr<MediaObjectImpl> mo;
 

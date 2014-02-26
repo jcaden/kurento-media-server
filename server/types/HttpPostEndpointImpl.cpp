@@ -47,8 +47,7 @@ HttpPostEndpointImpl::HttpPostEndpointImpl (
   register_end_point();
 
   if (!is_registered() ) {
-    throw "Cannot register HttpPostEndPoint";
-    // TODO: Improve exception management
+    throw KurentoException ("Cannot register HttpPostEndPoint");
   }
 
   g_object_set (G_OBJECT (element), USE_ENCODED_MEDIA, useEncodedMedia, NULL);

@@ -41,7 +41,7 @@ public:
    * register it in the MediaSet only if it is not into yet.
    */
   void reg (std::shared_ptr<MediaObjectImpl> mediaObject);
-  void keepAlive (const uint64_t &mediaObjectRef) throw (MediaObjectNotFound);
+  void keepAlive (const uint64_t &mediaObjectRef);
 
   /**
    * Set the state of the MediaObject as unreferenced and
@@ -50,8 +50,8 @@ public:
   void unreg (const uint64_t &mediaObjectRef, bool force = true);
   int size();
 
-  std::shared_ptr<MediaObjectImpl> getMediaObject (const uint64_t &mediaObjectRef)
-  throw (MediaObjectNotFound);
+  std::shared_ptr<MediaObjectImpl> getMediaObject (const uint64_t
+      &mediaObjectRef);
 
   static std::shared_ptr<MediaSet> getMediaSet();
 

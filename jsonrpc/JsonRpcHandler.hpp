@@ -36,7 +36,7 @@ public:
   Handler() {};
   virtual ~Handler() {};
 
-  typedef std::function<void (const Json::Value &, Json::Value &) throw (CallException) >
+  typedef std::function<void (const Json::Value &, Json::Value &) >
   Method;
 
   void addMethod (const std::string &name, Method method);

@@ -43,8 +43,7 @@ HttpGetEndpointImpl::HttpGetEndpointImpl (
   register_end_point();
 
   if (!is_registered() ) {
-    throw "Cannot register HttpGetEndPoint";
-    // TODO: Improve exception management
+    throw KurentoException ("Cannot register HttpGetEndPoint");
   }
 }
 
