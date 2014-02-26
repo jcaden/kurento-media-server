@@ -30,6 +30,9 @@ public:
   virtual ~GStreamerFilterImpl() throw () {};
 
 private:
+  GstElement *filter = NULL;
+
+  void setCommandProperties (const std::string &rest_token);
 
   class StaticConstructor
   {
