@@ -19,6 +19,7 @@
 #include <common/MediaSet.hpp>
 #include <string>
 #include <EventHandler.hpp>
+#include <KurentoException.hpp>
 
 #define GST_CAT_DEFAULT kurento_server_methods
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
@@ -47,8 +48,7 @@ ServerMethods::process (const std::string &request, std::string &response)
 }
 
 void
-ServerMethods::subscribe (const Json::Value &params,
-                          Json::Value &response) throw (JsonRpc::CallException)
+ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
 {
   std::shared_ptr<MediaObject> obj;
   std::string eventType;
@@ -59,14 +59,12 @@ ServerMethods::subscribe (const Json::Value &params,
   if (params == Json::Value::null) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'params' is requiered");
-    // TODO: Define error data and code
     throw e;
   }
 
   if (!params["type"].isString() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'type' parameter should be a string");
-    // TODO: Define error data and code
     throw e;
   }
 
@@ -75,7 +73,6 @@ ServerMethods::subscribe (const Json::Value &params,
   if (!params["ip"].isString() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'ip' parameter should be a string");
-    // TODO: Define error data and code
     throw e;
   }
 
@@ -84,7 +81,6 @@ ServerMethods::subscribe (const Json::Value &params,
   if (!params["port"].isInt() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'port' parameter should be a int");
-    // TODO: Define error data and code
     throw e;
   }
 
@@ -93,7 +89,6 @@ ServerMethods::subscribe (const Json::Value &params,
   if (!params["object"].isString() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'object' parameter should be a string");
-    // TODO: Define error data and code
     throw e;
   }
 
@@ -103,15 +98,32 @@ ServerMethods::subscribe (const Json::Value &params,
     obj = MediaObject::Factory::getObject (params["object"].asString () );
     sessionId = obj->connect (eventType, handler);
     eventHandlers[sessionId] = handler;
-  } catch (JsonRpc::CallException &ex) {
+  } catch (KurentoException &ex) {
+    Json::Value data;
+    data["code"] = ex.getCode();
+    data["message"] = ex.getMessage();
+
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "object not found: " + ex.getMessage() );
+                              ex.what(), data);
+    throw e;
+  } catch (std::string &ex) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Unexpected error: " + ex);
+    throw e;
+  } catch (std::exception &ex) {
+    std::string message = "Unexpected exception: ";
+
+    message.append (ex.what() );
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT, message);
+    throw e;
+  } catch (...) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Unexpected exception");
     throw e;
   }
 
   if (sessionId == "") {
-    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "event not found");
+    KurentoException e ("event not found");
     throw e;
   }
 
@@ -120,30 +132,25 @@ ServerMethods::subscribe (const Json::Value &params,
 }
 
 void
-ServerMethods::invoke (const Json::Value &params,
-                       Json::Value &response)
-throw (JsonRpc::CallException)
+ServerMethods::invoke (const Json::Value &params, Json::Value &response)
 {
   std::shared_ptr<MediaObject> obj;
 
   if (params == Json::Value::null) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'params' is requiered");
-    // TODO: Define error data and code
     throw e;
   }
 
   if (!params.isMember ("operation") ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'operation' parameter is requiered");
-    // TODO: Define error data and code
     throw e;
   }
 
   if (!params["operation"].isString() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'operation' parameter should be a string");
-    // TODO: Define error data and code
     throw e;
   }
 
@@ -151,7 +158,6 @@ throw (JsonRpc::CallException)
     if (!params["operationParams"].isObject() ) {
       JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                                 "'operation' parameter should be a string");
-      // TODO: Define error data and code
       throw e;
     }
   }
@@ -159,34 +165,33 @@ throw (JsonRpc::CallException)
   if (!params.isMember ("object") ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'object' parameter is requiered");
-    // TODO: Define error data and code
     throw e;
   }
 
   if (!params["object"].isString() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'object' parameter should be a string");
-    // TODO: Define error data and code
     throw e;
   }
 
-  try {
-    obj = MediaPipeline::Factory::getObject (params["object"].asString () );
-  } catch (JsonRpc::CallException &ex) {
-    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "object not found: " + ex.getMessage() );
-    throw e;
-  }
+  obj = MediaPipeline::Factory::getObject (params["object"].asString () );
 
   if (!obj) {
-    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "object not found");
+    KurentoException e ("object not found");
     throw e;
   }
 
   try {
     obj->getInvoker().invoke (obj, params["operation"].asString(),
                               params["operationParams"], response);
+  } catch (KurentoException &ex) {
+    Json::Value data;
+    data["code"] = ex.getCode();
+    data["message"] = ex.getMessage();
+
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              ex.what(), data);
+    throw e;
   } catch (std::string &ex) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "Unexpected error: " + ex);
@@ -207,7 +212,6 @@ throw (JsonRpc::CallException)
 void
 ServerMethods::create (const Json::Value &params,
                        Json::Value &response)
-throw (JsonRpc::CallException)
 {
   std::string type;
   std::shared_ptr<Factory> factory;
@@ -215,43 +219,62 @@ throw (JsonRpc::CallException)
   if (params == Json::Value::null) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'params' is requiered");
-    // TODO: Define error data and code
     throw e;
   }
 
   if (!params.isMember ("type") ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'type' parameter is requiered");
-    // TODO: Define error data and code
     throw e;
   }
 
   if (!params["type"].isString() ) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "'type' parameter should be a string");
-    // TODO: Define error data and code
     throw e;
   }
 
   type = params["type"].asString();
 
   if (!objectRegistrar) {
-    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
-                              "Class '" + type + "' does not exist");
-    // TODO: Define error data and code
+    KurentoException e ("Class '" + type + "' does not exist");
     throw e;
   }
 
   factory = objectRegistrar->getFactory (type);
 
   if (factory) {
-    std::shared_ptr <MediaObjectImpl> object;
+    try {
+      std::shared_ptr <MediaObjectImpl> object;
 
-    object = std::dynamic_pointer_cast<MediaObjectImpl> (
-               factory->createObject (params["constructorParams"]) );
+      object = std::dynamic_pointer_cast<MediaObjectImpl> (
+                 factory->createObject (params["constructorParams"]) );
 
-    MediaSet::getMediaSet()->reg (object);
-    response = object->getIdStr();
+      MediaSet::getMediaSet()->reg (object);
+      response = object->getIdStr();
+    } catch (KurentoException &ex) {
+      Json::Value data;
+      data["code"] = ex.getCode();
+      data["message"] = ex.getMessage();
+
+      JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                                ex.what(), data);
+      throw e;
+    } catch (std::string &ex) {
+      JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                                "Unexpected error: " + ex);
+      throw e;
+    } catch (std::exception &ex) {
+      std::string message = "Unexpected exception: ";
+
+      message.append (ex.what() );
+      JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT, message);
+      throw e;
+    } catch (...) {
+      JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                                "Unexpected exception");
+      throw e;
+    }
   } else {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "Class '" + type + "' does not exist");

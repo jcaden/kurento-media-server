@@ -44,7 +44,7 @@ ObjectRegistrar::getFactory (const std::string &factoryName)
 }
 
 std::shared_ptr<MediaObject>
-Factory::getObject (const std::string &id) throw (JsonRpc::CallException)
+Factory::getObject (const std::string &id)
 {
   uint64_t int64Id;
   std::shared_ptr<MediaObjectImpl> obj;

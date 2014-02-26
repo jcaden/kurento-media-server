@@ -40,6 +40,7 @@ include_directories(kurento ${GMODULE_INCLUDE_DIRS})
 include_directories(kurento ${JSONCPP_INCLUDE_DIRS})
 include_directories(kurento ${SIGCPP_INCLUDE_DIRS})
 include_directories(kurento ${CMAKE_SOURCE_DIR}/jsonrpc)
-include_directories(kurento ${CMAKE_SOURCE_DIR}/generated)
+include_directories(kurento ${CMAKE_SOURCE_DIR}/server/generated)
+include_directories(kurento ${CMAKE_SOURCE_DIR}/server/types)
 
 install(TARGETS kurento RUNTIME DESTINATION bin)

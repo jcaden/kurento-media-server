@@ -19,7 +19,6 @@
 #include <jsoncpp/json/json.h>
 #include <map>
 #include <memory>
-#include <JsonRpcException.hpp>
 
 namespace kurento
 {
@@ -33,10 +32,9 @@ public:
   virtual ~Factory() {};
 
   virtual std::shared_ptr<MediaObject> createObject (const Json::Value
-      &params) throw (JsonRpc::CallException) = 0;
+      &params) = 0;
 
-  static std::shared_ptr<MediaObject> getObject (const std::string &id)
-  throw (JsonRpc::CallException);
+  static std::shared_ptr<MediaObject> getObject (const std::string &id);
 
   virtual std::string getName() = 0;
 };
