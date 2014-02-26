@@ -35,6 +35,8 @@ public:
 
 private:
 
+  GstElement *faceOverlay = NULL;
+
   class StaticConstructor
   {
   public:

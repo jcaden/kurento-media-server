@@ -28,13 +28,31 @@ FaceOverlayFilterImpl::FaceOverlayFilterImpl (
   std::shared_ptr< MediaObjectImpl > parent, int garbagePeriod) :
   FilterImpl (parent, garbagePeriod)
 {
-  // TODO:
+  g_object_set (element, "filter-factory", "faceoverlay", NULL);
+
+  g_object_get (G_OBJECT (element), "filter", &faceOverlay, NULL);
+
+  if (faceOverlay == NULL) {
+    // TODO: Decide an exception format
+    throw "Media Object not available";
+  }
+
+  g_object_unref (faceOverlay);
 }
 
 void
 FaceOverlayFilterImpl::unsetOverlayedImage ()
 {
-  // TODO:
+  GstStructure *imageSt;
+  imageSt = gst_structure_new ("image",
+                               "offsetXPercent", G_TYPE_DOUBLE, 0.0,
+                               "offsetYPercent", G_TYPE_DOUBLE, 0.0,
+                               "widthPercent", G_TYPE_DOUBLE, 0.0,
+                               "heightPercent", G_TYPE_DOUBLE, 0.0,
+                               "url", G_TYPE_STRING, NULL,
+                               NULL);
+  g_object_set (G_OBJECT (faceOverlay), "image-to-overlay", imageSt, NULL);
+  gst_structure_free (imageSt);
 }
 
 void
@@ -42,7 +60,16 @@ FaceOverlayFilterImpl::setOverlayedImage (const std::string &uri,
     float offsetXPercent, float offsetYPercent, float widthPercent,
     float heightPercent)
 {
-  // TODO:
+  GstStructure *imageSt;
+  imageSt = gst_structure_new ("image",
+                               "offsetXPercent", G_TYPE_DOUBLE, double (offsetXPercent),
+                               "offsetYPercent", G_TYPE_DOUBLE, double (offsetYPercent),
+                               "widthPercent", G_TYPE_DOUBLE, double (widthPercent),
+                               "heightPercent", G_TYPE_DOUBLE, double (heightPercent),
+                               "url", G_TYPE_STRING, uri.c_str(),
+                               NULL);
+  g_object_set (G_OBJECT (faceOverlay), "image-to-overlay", imageSt, NULL);
+  gst_structure_free (imageSt);
 }
 
 std::shared_ptr<MediaObject>
