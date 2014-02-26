@@ -52,6 +52,10 @@ MediaObjectImpl::MediaObjectImpl (std::shared_ptr<MediaObjectImpl> parent,
 {
   this->garbagePeriod = garbagePeriod;
   this->parent = parent;
+
+  signalError.connect ([parent] (Error error) {
+    parent->signalError (error);
+  });
 }
 
 std::string MediaObjectImpl::getIdStr ()
