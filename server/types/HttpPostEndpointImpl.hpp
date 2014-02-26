@@ -18,6 +18,7 @@
 
 #include "HttpEndpointImpl.hpp"
 #include <generated/HttpPostEndpoint.hpp>
+#include <functional>
 
 namespace kurento
 {
@@ -30,6 +31,8 @@ public:
                         std::shared_ptr< MediaObjectImpl > mediaPipeline,
                         int garbagePeriod);
   virtual ~HttpPostEndpointImpl() {};
+private:
+  std::function<void() > eosLambda;
 };
 
 } /* kurento */

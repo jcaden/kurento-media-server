@@ -16,14 +16,42 @@
 #include "HttpPostEndpointImpl.hpp"
 #include <generated/MediaPipeline.hpp>
 
+#define USE_ENCODED_MEDIA "use-encoded-media"
+
 namespace kurento
 {
+
+static void
+adaptor_function (GstElement *player, gpointer data)
+{
+  auto handler = reinterpret_cast<std::function<void() >*> (data);
+
+  (*handler) ();
+}
+
 HttpPostEndpointImpl::HttpPostEndpointImpl (
   bool useEncodedMedia, int disconnectionTimeout,
   std::shared_ptr< MediaObjectImpl > mediaPipeline, int garbagePeriod) :
   HttpEndpointImpl (disconnectionTimeout, mediaPipeline, garbagePeriod)
 {
+  eosLambda = [&] () {
+    EndOfStream event (shared_from_this(), EndOfStream::getName() );
 
+    signalEndOfStream (event);
+  };
+
+  /* Do not accept EOS */
+  g_object_set ( G_OBJECT (element), "accept-eos", false, NULL);
+  g_signal_connect (element, "eos", G_CALLBACK (adaptor_function), this);
+
+  register_end_point();
+
+  if (!is_registered() ) {
+    throw "Cannot register HttpPostEndPoint";
+    // TODO: Improve exception management
+  }
+
+  g_object_set (G_OBJECT (element), USE_ENCODED_MEDIA, useEncodedMedia, NULL);
 }
 
 std::shared_ptr< MediaObject >
