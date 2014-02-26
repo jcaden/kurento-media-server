@@ -18,18 +18,13 @@
 namespace kurento
 {
 
-void
-media_pipeline_receive_message (GstBus *bus, GstMessage *message, gpointer data)
+static void
+bus_message_adaptor (GstBus *bus, GstMessage *message, gpointer data)
 {
-  switch (message->type) {
-  case GST_MESSAGE_ERROR: {
-    // TODO: Send error event
-    break;
-  }
+  auto func = reinterpret_cast<std::function<void (GstMessage *message) >*>
+              (data);
 
-  default:
-    break;
-  }
+  (*func) (message);
 }
 
 MediaPipelineImpl::MediaPipelineImpl (int garbagePeriod) :
@@ -41,10 +36,32 @@ MediaPipelineImpl::MediaPipelineImpl (int garbagePeriod) :
   g_object_set (G_OBJECT (pipeline), "async-handling", TRUE, NULL);
   gst_element_set_state (pipeline, GST_STATE_PLAYING);
 
+  busMessageLambda = [&] (GstMessage * message) {
+    switch (message->type) {
+    case GST_MESSAGE_ERROR: {
+      GError *err = NULL;
+
+      GST_ERROR ("Error on bus: %" GST_PTR_FORMAT, message);
+      gst_debug_bin_to_dot_file_with_ts (GST_BIN (pipeline),
+                                         GST_DEBUG_GRAPH_SHOW_ALL, "error");
+      gst_message_parse_error (message, &err, NULL);
+      std::string errorMessage (err->message);
+      Error error (shared_from_this(), errorMessage , 0,
+                   "UNEXPECTED_PIPELINE_ERROR");
+      g_error_free (err);
+      signalError (error);
+      break;
+    }
+
+    default:
+      break;
+    }
+  };
+
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipeline) );
   gst_bus_add_signal_watch (bus);
-  g_signal_connect (bus, "message", G_CALLBACK (media_pipeline_receive_message),
-                    (gpointer) this);
+  g_signal_connect (bus, "message", G_CALLBACK (bus_message_adaptor),
+                    &busMessageLambda);
   g_object_unref (bus);
 }
 

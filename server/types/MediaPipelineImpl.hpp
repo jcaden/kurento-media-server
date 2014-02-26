@@ -46,6 +46,8 @@ public:
 
 private:
   GstElement *pipeline;
+
+  std::function <void (GstMessage *message) > busMessageLambda;
 };
 
 } /* kurento */
