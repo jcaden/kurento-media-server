@@ -37,6 +37,8 @@ JackVaderFilterImpl::JackVaderFilterImpl (
   if (filter == NULL) {
     throw KurentoException ("Media Object not available");
   }
+
+  g_object_unref (filter);
 }
 
 std::shared_ptr<MediaObject>
