@@ -28,9 +28,13 @@ class PlateDetectorFilterImpl: public virtual PlateDetectorFilter,
 public:
   PlateDetectorFilterImpl (std::shared_ptr<MediaObjectImpl> parent,
                            int garbagePeriod);
-  virtual ~PlateDetectorFilterImpl() throw () {};
+  virtual ~PlateDetectorFilterImpl() throw ();
 
 private:
+
+  gulong bus_handler_id;
+  GstElement *plateDetector = NULL;
+  std::function<void (GstMessage *) > busMessageLambda;
 
   class StaticConstructor
   {
