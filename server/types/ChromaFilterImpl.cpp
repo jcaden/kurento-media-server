@@ -15,11 +15,14 @@
 
 #include "ChromaFilterImpl.hpp"
 #include <generated/MediaPipeline.hpp>
+#include <generated/WindowParam.hpp>
 
 #define GST_CAT_DEFAULT kurento_chroma_filter_impl
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);
 #define GST_DEFAULT_NAME "KurentoChromaFilterImpl"
 
+#define SET_BACKGROUND_URI "image-background"
+#define SET_CALIBRATION_AREA "calibration-area"
 
 namespace kurento
 {
@@ -29,19 +32,44 @@ ChromaFilterImpl::ChromaFilterImpl (
   std::shared_ptr< MediaObjectImpl > parent, int garbagePeriod) :
   FilterImpl (parent, garbagePeriod)
 {
-  // TODO:
+  GstStructure *aux;
+
+  g_object_set (element, "filter-factory", "chroma", NULL);
+
+  g_object_get (G_OBJECT (element), "filter", &chroma, NULL);
+
+  if (chroma == NULL) {
+    // TODO: Decide an exception format
+    throw "Media Object not available";
+  }
+
+  aux = gst_structure_new ("calibration_area",
+                           "x", G_TYPE_INT, window->getTopRightCornerX(),
+                           "y", G_TYPE_INT, window->getTopRightCornerY(),
+                           "width", G_TYPE_INT, window->getWidth(),
+                           "height", G_TYPE_INT, window->getHeight(),
+                           NULL);
+
+  g_object_set (G_OBJECT (chroma), SET_CALIBRATION_AREA, aux, NULL);
+  gst_structure_free (aux);
+
+  g_object_set (G_OBJECT (this->chroma), SET_BACKGROUND_URI,
+                backgroundImage.c_str(), NULL);
+
+  g_object_unref (chroma);
 }
 
 void
 ChromaFilterImpl::setBackground (const std::string &uri)
 {
-  // TODO:
+  g_object_set (G_OBJECT (chroma), SET_BACKGROUND_URI,
+                uri.c_str(), NULL);
 }
 
 void
 ChromaFilterImpl::unsetBackground ()
 {
-  // TODO:
+  g_object_set (G_OBJECT (chroma), SET_BACKGROUND_URI, NULL, NULL);
 }
 
 std::shared_ptr<MediaObject>

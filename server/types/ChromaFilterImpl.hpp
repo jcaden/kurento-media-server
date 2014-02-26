@@ -36,6 +36,8 @@ public:
 
 private:
 
+  GstElement *chroma = NULL;
+
   class StaticConstructor
   {
   public:
