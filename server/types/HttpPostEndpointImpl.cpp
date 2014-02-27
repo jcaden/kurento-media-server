@@ -15,6 +15,7 @@
 
 #include "HttpPostEndpointImpl.hpp"
 #include <generated/MediaPipeline.hpp>
+#include <KurentoException.hpp>
 
 #define USE_ENCODED_MEDIA "use-encoded-media"
 

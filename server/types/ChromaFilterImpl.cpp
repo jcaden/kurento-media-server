@@ -16,6 +16,7 @@
 #include "ChromaFilterImpl.hpp"
 #include <generated/MediaPipeline.hpp>
 #include <generated/WindowParam.hpp>
+#include <KurentoException.hpp>
 
 #define GST_CAT_DEFAULT kurento_chroma_filter_impl
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);

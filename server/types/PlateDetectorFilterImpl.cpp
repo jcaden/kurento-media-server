@@ -16,6 +16,7 @@
 #include "PlateDetectorFilterImpl.hpp"
 #include <generated/MediaPipeline.hpp>
 #include "MediaPipelineImpl.hpp"
+#include <KurentoException.hpp>
 
 #define GST_CAT_DEFAULT kurento_plate_detector_filter_impl
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);

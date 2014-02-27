@@ -16,6 +16,7 @@
 
 #include "MediaSourceImpl.hpp"
 #include "MediaSinkImpl.hpp"
+#include <KurentoException.hpp>
 
 #define GST_CAT_DEFAULT kurento_media_source_impl
 GST_DEBUG_CATEGORY_STATIC (GST_CAT_DEFAULT);

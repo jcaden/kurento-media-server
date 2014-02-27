@@ -16,6 +16,7 @@
 #include "HttpGetEndpointImpl.hpp"
 #include <generated/MediaPipeline.hpp>
 #include <generated/MediaProfileSpecType.hpp>
+#include <KurentoException.hpp>
 
 namespace kurento
 {
