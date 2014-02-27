@@ -51,7 +51,6 @@ EventHandler::sendEvent (Json::Value &value) const
     try {
       Json::FastWriter writer;
       Json::Value rpc;
-      std::string response;
 
       transport->open();
 
@@ -60,7 +59,7 @@ EventHandler::sendEvent (Json::Value &value) const
       rpc [JSON_RPC_PARAMS] = value;
 
       GST_DEBUG ("Sending event: %s", writer.write (rpc).c_str() );
-      client.eventJsonRpc (response, writer.write (rpc) );
+      client.eventJsonRpc (writer.write (rpc) );
 
       transport->close();
     } catch (std::exception &e) {
