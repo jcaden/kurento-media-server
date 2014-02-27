@@ -16,13 +16,13 @@
 #ifndef __SDP_ENDPOINT_IMPL_HPP__
 #define __SDP_ENDPOINT_IMPL_HPP__
 
-#include "EndpointImpl.hpp"
+#include "SessionEndpointImpl.hpp"
 #include <generated/SdpEndpoint.hpp>
 
 namespace kurento
 {
 
-class SdpEndpointImpl: public virtual SdpEndpoint, public EndpointImpl
+class SdpEndpointImpl: public virtual SdpEndpoint, public SessionEndpointImpl
 {
 public:
   SdpEndpointImpl (const std::string &factoryName,
