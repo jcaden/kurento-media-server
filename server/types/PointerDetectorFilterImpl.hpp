@@ -37,6 +37,11 @@ public:
 
 private:
 
+  GstElement *pointerDetector;
+  gulong bus_handler_id;
+
+  std::function<void (GstMessage *) > busMessageLambda;
+
   class StaticConstructor
   {
   public:
