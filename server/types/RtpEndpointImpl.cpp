@@ -15,6 +15,7 @@
 
 #include "RtpEndpointImpl.hpp"
 #include <generated/MediaPipeline.hpp>
+#include "media_config.hpp"
 
 #define FACTORY_NAME "rtpendpoint"
 
@@ -24,7 +25,7 @@ RtpEndpointImpl::RtpEndpointImpl (
   std::shared_ptr< MediaObjectImpl > mediaPipeline, int garbagePeriod) :
   SdpEndpointImpl (FACTORY_NAME, mediaPipeline, garbagePeriod)
 {
-  // TODO:
+  g_object_set (element, "pattern-sdp", sdpPattern, NULL);
 }
 
 std::shared_ptr< MediaObject >
