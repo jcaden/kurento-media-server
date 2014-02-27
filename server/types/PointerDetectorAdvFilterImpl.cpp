@@ -86,7 +86,7 @@ PointerDetectorAdvFilterImpl::PointerDetectorAdvFilterImpl (
 
   pipe = std::dynamic_pointer_cast<MediaPipelineImpl> (getMediaPipeline() );
 
-  g_object_set (element, "filter-factory", "pointerdetector", NULL);
+  g_object_set (element, "filter-factory", "pointerdetector2", NULL);
 
   bus = gst_pipeline_get_bus (GST_PIPELINE (pipe->getPipeline() ) );
 
