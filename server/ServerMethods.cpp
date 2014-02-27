@@ -112,6 +112,8 @@ ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               ex.what(), data);
     throw e;
+  } catch (JsonRpc::CallException ) {
+    throw;
   } catch (std::string &ex) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "Unexpected error: " + ex);
@@ -193,6 +195,8 @@ ServerMethods::invoke (const Json::Value &params, Json::Value &response)
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               ex.what(), data);
     throw e;
+  } catch (JsonRpc::CallException ) {
+    throw;
   } catch (std::string &ex) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "Unexpected error: " + ex);
@@ -261,6 +265,8 @@ ServerMethods::create (const Json::Value &params,
       JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                                 ex.what(), data);
       throw e;
+    } catch (JsonRpc::CallException ) {
+      throw;
     } catch (std::string &ex) {
       JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                                 "Unexpected error: " + ex);
