@@ -40,15 +40,49 @@ bus_message_adaptor (GstBus *bus, GstMessage *message, gpointer data)
   (*func) (message);
 }
 
+static GstStructure *
+get_structure_from_window (std::shared_ptr<PointerDetectorWindowMediaParam>
+                           window)
+{
+  GstStructure *buttonsLayoutAux;
+
+  buttonsLayoutAux = gst_structure_new (
+                       window->getId().c_str(),
+                       "upRightCornerX", G_TYPE_INT, window->getUpperRightX(),
+                       "upRightCornerY", G_TYPE_INT, window->getUpperRightY(),
+                       "width", G_TYPE_INT, window->getWidth(),
+                       "height", G_TYPE_INT, window->getHeight(),
+                       "id", G_TYPE_STRING, window->getId().c_str(),
+                       NULL);
+
+  if (window->isSetInactiveImage() ) {
+    gst_structure_set (buttonsLayoutAux, "inactive_uri",
+                       G_TYPE_STRING, window->getInactiveImage().c_str(), NULL);
+  }
+
+  if (window->isSetImageTransparency() ) {
+    gst_structure_set (buttonsLayoutAux, "transparency",
+                       G_TYPE_DOUBLE, double (window->getImageTransparency() ), NULL);
+  }
+
+  if (window->isSetImage() ) {
+    gst_structure_set (buttonsLayoutAux, "active_uri",
+                       G_TYPE_STRING, window->getImage().c_str(), NULL);
+  }
+
+  return buttonsLayoutAux;
+}
+
 PointerDetectorAdvFilterImpl::PointerDetectorAdvFilterImpl (
   std::shared_ptr<WindowParam> calibrationRegion,
-  std::shared_ptr<PointerDetectorWindowMediaParam> window,
+  const std::vector<std::shared_ptr<PointerDetectorWindowMediaParam>> &windows,
   std::shared_ptr<MediaObjectImpl> parent, int garbagePeriod) :
   FilterImpl (parent, garbagePeriod)
 {
   GstBus *bus;
   std::shared_ptr<MediaPipelineImpl> pipe;
   GstStructure *calibrationArea;
+  GstStructure *buttonsLayout;
 
   pipe = std::dynamic_pointer_cast<MediaPipelineImpl> (getMediaPipeline() );
 
@@ -74,10 +108,22 @@ PointerDetectorAdvFilterImpl::PointerDetectorAdvFilterImpl (
                 calibrationArea, NULL);
   gst_structure_free (calibrationArea);
 
-  // TODO: Window showld be an array
-  if (window) {
-    addWindow (window);
+  buttonsLayout = gst_structure_new_empty  ("windowsLayout");
+
+  for (auto window : windows) {
+    GstStructure *buttonsLayoutAux = get_structure_from_window (window);
+
+    gst_structure_set (buttonsLayout,
+                       window->getId().c_str(), GST_TYPE_STRUCTURE,
+                       buttonsLayoutAux,
+                       NULL);
+
+    gst_structure_free (buttonsLayoutAux);
   }
+
+  g_object_set (G_OBJECT (pointerDetector), WINDOWS_LAYOUT, buttonsLayout,
+                NULL);
+  gst_structure_free (buttonsLayout);
 
   busMessageLambda = [&] (GstMessage * message) {
     const GstStructure *st;
@@ -144,30 +190,7 @@ PointerDetectorAdvFilterImpl::addWindow (
 {
   GstStructure *buttonsLayout, *buttonsLayoutAux;
 
-  buttonsLayoutAux = gst_structure_new (
-                       window->getId().c_str(),
-                       "upRightCornerX", G_TYPE_INT, window->getUpperRightX(),
-                       "upRightCornerY", G_TYPE_INT, window->getUpperRightY(),
-                       "width", G_TYPE_INT, window->getWidth(),
-                       "height", G_TYPE_INT, window->getHeight(),
-                       "id", G_TYPE_STRING, window->getId().c_str(),
-                       NULL);
-
-  if (window->isSetInactiveImage() ) {
-    gst_structure_set (buttonsLayoutAux, "inactive_uri",
-                       G_TYPE_STRING, window->getInactiveImage().c_str(), NULL);
-  }
-
-  if (window->isSetImageTransparency() ) {
-    gst_structure_set (buttonsLayoutAux, "transparency",
-                       G_TYPE_DOUBLE, double (window->getImageTransparency() ), NULL);
-  }
-
-  if (window->isSetImage() ) {
-    gst_structure_set (buttonsLayoutAux, "active_uri",
-                       G_TYPE_STRING, window->getImage().c_str(), NULL);
-  }
-
+  buttonsLayoutAux = get_structure_from_window (window);
 
   /* The function obtains the actual window list */
   g_object_get (G_OBJECT (pointerDetector), WINDOWS_LAYOUT, &buttonsLayout,
@@ -235,10 +258,11 @@ std::shared_ptr<MediaObject>
 PointerDetectorAdvFilter::Factory::createObject (
   std::shared_ptr<MediaPipeline> mediaPipeline,
   std::shared_ptr<WindowParam> calibrationRegion,
-  std::shared_ptr<PointerDetectorWindowMediaParam> window, int garbagePeriod)
+  const std::vector<std::shared_ptr<PointerDetectorWindowMediaParam>> &windows,
+  int garbagePeriod)
 {
   std::shared_ptr<MediaObject> object (new PointerDetectorAdvFilterImpl (
-                                         calibrationRegion, window,
+                                         calibrationRegion, windows,
                                          std::dynamic_pointer_cast<MediaObjectImpl> (mediaPipeline),
                                          garbagePeriod) );
 

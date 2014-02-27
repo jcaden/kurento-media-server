@@ -26,7 +26,7 @@ namespace kurento
 {
 
 PointerDetectorFilterImpl::PointerDetectorFilterImpl (
-  std::shared_ptr<PointerDetectorWindowMediaParam> window,
+  const std::vector<std::shared_ptr<PointerDetectorWindowMediaParam>> &windows,
   std::shared_ptr< MediaObjectImpl > parent, int garbagePeriod) :
   FilterImpl (parent, garbagePeriod)
 {
@@ -55,10 +55,11 @@ PointerDetectorFilterImpl::removeWindow (const std::string &windowId)
 std::shared_ptr<MediaObject>
 PointerDetectorFilter::Factory::createObject (
   std::shared_ptr<MediaPipeline> mediaPipeline,
-  std::shared_ptr<PointerDetectorWindowMediaParam> window, int garbagePeriod)
+  const std::vector<std::shared_ptr<PointerDetectorWindowMediaParam>> &windows,
+  int garbagePeriod)
 {
   std::shared_ptr<MediaObject> object (new PointerDetectorFilterImpl (
-                                         window, std::dynamic_pointer_cast<MediaObjectImpl> (mediaPipeline),
+                                         windows, std::dynamic_pointer_cast<MediaObjectImpl> (mediaPipeline),
                                          garbagePeriod) );
 
   return object;
