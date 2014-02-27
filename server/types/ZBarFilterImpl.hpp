@@ -26,9 +26,19 @@ class ZBarFilterImpl: public virtual ZBarFilter, public FilterImpl
 {
 public:
   ZBarFilterImpl (std::shared_ptr<MediaObjectImpl> parent, int garbagePeriod);
-  virtual ~ZBarFilterImpl() throw () {};
+  virtual ~ZBarFilterImpl() throw ();
 
 private:
+  GstElement *zbar;
+  gulong bus_handler_id;
+
+  guint64 lastTs = G_GUINT64_CONSTANT (0);
+  std::string lastType;
+  std::string lastSymbol;
+
+  std::function<void (GstMessage *) > busMessageLambda;
+
+  void barcodeDetected (guint64 ts, std::string &type, std::string &symbol);
 
   class StaticConstructor
   {
