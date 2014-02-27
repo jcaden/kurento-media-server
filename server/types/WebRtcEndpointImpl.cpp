@@ -15,6 +15,7 @@
 
 #include "WebRtcEndpointImpl.hpp"
 #include <generated/MediaPipeline.hpp>
+#include <media_config.hpp>
 
 #define FACTORY_NAME "webrtcendpoint"
 
@@ -24,7 +25,26 @@ WebRtcEndpointImpl::WebRtcEndpointImpl (
   std::shared_ptr< MediaObjectImpl > mediaPipeline, int garbagePeriod) :
   SdpEndpointImpl (FACTORY_NAME, mediaPipeline, garbagePeriod)
 {
-  // TODO:
+  g_object_set (element, "pattern-sdp", sdpPattern, NULL);
+
+  //set properties
+  GST_INFO ("stun port %d\n", stunServerPort);
+
+  if (stunServerPort != 0) {
+    g_object_set ( G_OBJECT (element), "stun-server-port", stunServerPort, NULL);
+  }
+
+  GST_INFO ("stun address %s\n", stunServerAddress.c_str() );
+  g_object_set ( G_OBJECT (element), "stun-server", stunServerAddress.c_str(),
+                 NULL);
+
+  if (pemCertificate.compare ("") == 0) {
+    GST_INFO ("Using default pemCertificate");
+  } else {
+    GST_INFO ("PemCertificate %s\n", pemCertificate.c_str() );
+    g_object_set ( G_OBJECT (element), "certificate-pem-file",
+                   pemCertificate.c_str(), NULL);
+  }
 }
 
 std::shared_ptr< MediaObject >
