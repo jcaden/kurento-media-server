@@ -39,6 +39,13 @@ EventHandler::EventHandler (const std::string &ip, int port) : ip (ip),
   generateUUID (id);
 }
 
+EventHandler::~EventHandler()
+{
+  std::cout << "Disconnect event handler" << std::endl;
+  conn.disconnect();
+}
+
+
 void
 EventHandler::sendEvent (Json::Value &value) const
 {

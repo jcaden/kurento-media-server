@@ -39,6 +39,9 @@ ServerMethods::ServerMethods()
   handler.addMethod ("subscribe", std::bind (&ServerMethods::subscribe, this,
                      std::placeholders::_1,
                      std::placeholders::_2) );
+  handler.addMethod ("unsubscribe", std::bind (&ServerMethods::unsubscribe,
+                     this, std::placeholders::_1,
+                     std::placeholders::_2) );
 }
 
 void
@@ -48,13 +51,36 @@ ServerMethods::process (const std::string &request, std::string &response)
 }
 
 void
+ServerMethods::unsubscribe (const Json::Value &params, Json::Value &response)
+{
+  std::shared_ptr<MediaObject> obj;
+  std::string subscription;
+
+  if (params == Json::Value::null) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'params' is requiered");
+    throw e;
+  }
+
+  if (!params["subscription"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'object' parameter should be a string");
+    throw e;
+  }
+
+  subscription = params["subscription"].asString();
+
+  eventHandlers.erase (subscription);
+}
+
+void
 ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
 {
   std::shared_ptr<MediaObject> obj;
   std::string eventType;
   std::string ip;
   int port;
-  std::string sessionId;
+  std::string handlerId;
 
   if (params == Json::Value::null) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
@@ -96,14 +122,14 @@ ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
     std::shared_ptr<EventHandler> handler (new EventHandler (ip, port) );
 
     obj = MediaObject::Factory::getObject (params["object"].asString () );
-    sessionId = obj->connect (eventType, handler);
+    handlerId = obj->connect (eventType, handler);
 
-    if (sessionId == "") {
+    if (handlerId == "") {
       KurentoException e ("event not found");
       throw e;
     }
 
-    eventHandlers[sessionId] = handler;
+    eventHandlers[handlerId] = handler;
   } catch (KurentoException &ex) {
     Json::Value data;
     data["code"] = ex.getCode();
@@ -130,8 +156,7 @@ ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
     throw e;
   }
 
-  response["sessionId"] = sessionId;
-  response["object"] = params["object"];
+  response = handlerId;
 }
 
 void

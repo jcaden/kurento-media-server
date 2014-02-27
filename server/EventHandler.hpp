@@ -29,7 +29,7 @@ class EventHandler
 public:
   EventHandler (const std::string &ip, int port);
 
-  virtual ~EventHandler() {};
+  virtual ~EventHandler();
 
   void sendEvent (Json::Value &value) const;
 
