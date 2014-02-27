@@ -97,6 +97,12 @@ ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
 
     obj = MediaObject::Factory::getObject (params["object"].asString () );
     sessionId = obj->connect (eventType, handler);
+
+    if (sessionId == "") {
+      KurentoException e ("event not found");
+      throw e;
+    }
+
     eventHandlers[sessionId] = handler;
   } catch (KurentoException &ex) {
     Json::Value data;
@@ -119,11 +125,6 @@ ServerMethods::subscribe (const Json::Value &params, Json::Value &response)
   } catch (...) {
     JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
                               "Unexpected exception");
-    throw e;
-  }
-
-  if (sessionId == "") {
-    KurentoException e ("event not found");
     throw e;
   }
 
