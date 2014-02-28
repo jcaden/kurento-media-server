@@ -96,7 +96,7 @@ std::string
 SdpEndpointImpl::getLocalSessionDescriptor()
 {
   GstSDPMessage *localSdp = NULL;
-  std::string localSdpStr = NULL;
+  std::string localSdpStr;
 
   g_object_get (element, "local-answer-sdp", &localSdp, NULL);
 
