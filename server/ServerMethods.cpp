@@ -42,6 +42,9 @@ ServerMethods::ServerMethods()
   handler.addMethod ("unsubscribe", std::bind (&ServerMethods::unsubscribe,
                      this, std::placeholders::_1,
                      std::placeholders::_2) );
+  handler.addMethod ("release", std::bind (&ServerMethods::release,
+                     this, std::placeholders::_1,
+                     std::placeholders::_2) );
 }
 
 void
@@ -51,9 +54,60 @@ ServerMethods::process (const std::string &request, std::string &response)
 }
 
 void
-ServerMethods::unsubscribe (const Json::Value &params, Json::Value &response)
+ServerMethods::release (const Json::Value &params, Json::Value &response)
 {
   std::shared_ptr<MediaObject> obj;
+  std::string subscription;
+
+  if (params == Json::Value::null) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'params' is requiered");
+    throw e;
+  }
+
+  if (!params["object"].isString() ) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "'object' parameter should be a string");
+    throw e;
+  }
+
+  try {
+    std::shared_ptr<MediaObjectImpl> objImpl;
+
+    obj = MediaObject::Factory::getObject (params["object"].asString () );
+    objImpl = std::dynamic_pointer_cast<MediaObjectImpl> (obj);
+
+    MediaSet::getMediaSet()->unreg (objImpl->getId(), true);
+  } catch (KurentoException &ex) {
+    Json::Value data;
+    data["code"] = ex.getCode();
+    data["message"] = ex.getMessage();
+
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              ex.what(), data);
+    throw e;
+  } catch (JsonRpc::CallException ) {
+    throw;
+  } catch (std::string &ex) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Unexpected error: " + ex);
+    throw e;
+  } catch (std::exception &ex) {
+    std::string message = "Unexpected exception: ";
+
+    message.append (ex.what() );
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT, message);
+    throw e;
+  } catch (...) {
+    JsonRpc::CallException e (JsonRpc::ErrorCode::SERVER_ERROR_INIT,
+                              "Unexpected exception");
+    throw e;
+  }
+}
+
+void
+ServerMethods::unsubscribe (const Json::Value &params, Json::Value &response)
+{
   std::string subscription;
 
   if (params == Json::Value::null) {

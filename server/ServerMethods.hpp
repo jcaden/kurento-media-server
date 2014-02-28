@@ -37,6 +37,7 @@ private:
   void invoke (const Json::Value &params, Json::Value &response);
   void subscribe (const Json::Value &params, Json::Value &response);
   void unsubscribe (const Json::Value &params, Json::Value &response);
+  void release (const Json::Value &params, Json::Value &response);
 
   JsonRpc::Handler handler;
   std::map<std::string, std::shared_ptr<EventHandler>> eventHandlers;
