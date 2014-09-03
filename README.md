@@ -42,6 +42,20 @@ If you whan to create a debian package you can execute:
 
 Debian packages will be created on parent directory.
 
+Binary distribution
+-------------------
+
+This software is distributed at debian packages, you can find stable releases
+here:
+
+https://launchpad.net/~kurento/+archive/ubuntu/kurento
+
+or current development version at:
+
+http://ubuntu.kurento.org/repo/?C=M;O=D (for 64 bits)
+
+http://ubuntu.kurento.org/repo-32/?C=M;O=D (for 32 bits)
+
 Source
 ------
 The source code of this project can be cloned from the [GitHub Repository].
